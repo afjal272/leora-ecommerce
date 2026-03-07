@@ -1,0 +1,327 @@
+"use client"
+
+import Link from "next/link"
+import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import { ShoppingCart, Heart, Search } from "lucide-react"
+
+import { useCartStore } from "@/store/cart.store"
+import { useAuthStore } from "@/store/auth.store"
+import { useCartUIStore } from "@/store/cart-ui.store"
+import { useProductStore } from "@/store/product.store"
+
+import CartDrawer from "@/components/cart/CartDrawer"
+
+export default function Navbar() {
+
+  const items = useCartStore((state) => state.items)
+  const { user, name, logout } = useAuthStore()
+  const { open, openCart, closeCart } = useCartUIStore()
+  const { products } = useProductStore()
+
+  const router = useRouter()
+
+  const [search, setSearch] = useState("")
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  const totalItems = items.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  )
+
+  const initials = name?.charAt(0).toUpperCase() || "U"
+
+  const handleSearchChange = (value: string) => {
+
+    setSearch(value)
+
+    if (!value.trim()) {
+      setSuggestions([])
+      return
+    }
+
+    const query = value.toLowerCase()
+
+    const filtered = products
+      .filter((p) => p.name.toLowerCase().includes(query))
+      .slice(0, 5)
+
+    setSuggestions(filtered)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+
+    e.preventDefault()
+
+    if (!search.trim()) return
+
+    router.push(`/products?search=${search}`)
+    setSuggestions([])
+  }
+
+  useEffect(() => {
+
+    const handleClickOutside = (event: MouseEvent) => {
+
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false)
+      }
+
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setSuggestions([])
+      }
+
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      )
+
+  }, [])
+
+  return (
+    <>
+      {/* Announcement Bar */}
+      <div className="bg-black text-white text-base text-center py-4 font-semibold tracking-wide">
+        Bulk & Wholesale Orders Available — Contact for special pricing
+      </div>
+
+      <header className="sticky top-0 z-50 bg-white border-b">
+
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
+
+          {/* relative important for center nav */}
+          <div className="flex items-center justify-between h-[70px] relative">
+
+            {/* LOGO */}
+            <Link
+              href="/"
+              scroll
+              className="text-2xl font-semibold tracking-[0.25em]"
+            >
+              LEORA
+            </Link>
+
+            {/* NAV LINKS (Perfect Center) */}
+            <nav className="hidden md:flex items-center gap-12 text-sm font-medium tracking-wide absolute left-1/2 -translate-x-1/2">
+
+              <Link href="/products" className="hover:text-gray-600 transition">
+                Shop
+              </Link>
+
+              <Link href="/blog" className="hover:text-gray-600 transition">
+                Blog
+              </Link>
+
+              <Link href="/contact" className="hover:text-gray-600 transition">
+                Contact
+              </Link>
+
+            </nav>
+
+            {/* RIGHT SIDE */}
+            <div className="flex items-center gap-6">
+
+              {/* SEARCH */}
+              <div
+                ref={searchRef}
+                className="relative hidden sm:block w-52"
+              >
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex items-center border rounded-full px-3 py-1 text-sm"
+                >
+
+                  <Search size={16} className="mr-2 text-gray-500" />
+
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) =>
+                      handleSearchChange(e.target.value)
+                    }
+                    className="outline-none bg-transparent w-full"
+                  />
+
+                </form>
+
+                {suggestions.length > 0 && (
+
+                  <div className="absolute top-10 left-0 w-full bg-white border rounded-xl shadow-lg overflow-hidden z-50">
+
+                    {suggestions.map((product) => (
+
+                      <Link
+                        key={product.id}
+                        href={`/products/${product.slug}`}
+                        onClick={() => setSuggestions([])}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition"
+                      >
+
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded"
+                        />
+
+                        <div>
+
+                          <p className="text-sm font-medium">
+                            {product.name}
+                          </p>
+
+                          <p className="text-xs text-gray-500">
+                            ₹{product.price}
+                          </p>
+
+                        </div>
+
+                      </Link>
+
+                    ))}
+
+                    <button
+                      onClick={() =>
+                        router.push(`/products?search=${search}`)
+                      }
+                      className="w-full text-left px-4 py-3 text-sm text-blue-600 hover:bg-gray-100"
+                    >
+                      View all results →
+                    </button>
+
+                  </div>
+
+                )}
+
+              </div>
+
+              {/* Wishlist */}
+              <Link
+                href="/wishlist"
+                className="hover:text-gray-600 transition"
+              >
+                <Heart size={20} />
+              </Link>
+
+              {/* CART */}
+              <button
+                onClick={openCart}
+                className="relative hover:text-gray-600 transition"
+              >
+
+                <ShoppingCart size={22} />
+
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-3 bg-black text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                    {totalItems}
+                  </span>
+                )}
+
+              </button>
+
+              {/* PROFILE */}
+              {user ? (
+
+                <div className="relative" ref={dropdownRef}>
+
+                  <button
+                    onClick={() =>
+                      setDropdownOpen(!dropdownOpen)
+                    }
+                    className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-semibold hover:scale-105 transition"
+                  >
+                    {initials}
+                  </button>
+
+                  <AnimatePresence>
+
+                    {dropdownOpen && (
+
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-4 w-56 bg-white border rounded-2xl shadow-xl overflow-hidden"
+                      >
+
+                        <div className="px-4 py-4 border-b">
+                          <p className="font-medium text-sm">
+                            {name}
+                          </p>
+                          <p className="text-xs text-gray-500 break-all">
+                            {user}
+                          </p>
+                        </div>
+
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-3 hover:bg-gray-100 text-sm transition"
+                          onClick={() =>
+                            setDropdownOpen(false)
+                          }
+                        >
+                          My Account
+                        </Link>
+
+                        <button
+                          onClick={() => {
+                            logout()
+                            setDropdownOpen(false)
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-100 text-sm text-red-500 transition"
+                        >
+                          Logout
+                        </button>
+
+                      </motion.div>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </div>
+
+              ) : (
+
+                <Link
+                  href="/auth/login"
+                  className="hover:text-gray-600 transition"
+                >
+                  Login
+                </Link>
+
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </header>
+
+      <CartDrawer
+        open={open}
+        onClose={closeCart}
+      />
+    </>
+  )
+}
