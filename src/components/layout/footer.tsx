@@ -64,7 +64,7 @@ export default function Footer() {
               </li>
                <h2> contact for Bulk Order</h2>
               <li>
-                <Link href="/#" className="hover:text-[#D9A441] transition">
+                <Link href="/contact" className="hover:text-[#D9A441] transition">
                   Contact
                 </Link>
               </li>

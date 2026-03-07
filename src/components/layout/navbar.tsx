@@ -111,7 +111,9 @@ export default function Navbar() {
             {/* LOGO */}
             <Link
               href="/"
-              scroll
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               className="text-2xl font-semibold tracking-[0.25em]"
             >
               LEORA
@@ -128,7 +130,7 @@ export default function Navbar() {
                 Blog
               </Link>
 
-              <Link href="/#" className="hover:text-gray-600 transition">
+              <Link href="/contact" className="hover:text-gray-600 transition">
                 Contact
               </Link>
 
