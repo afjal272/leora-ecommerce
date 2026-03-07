@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
+import { products as initialProducts } from "@/mock/products"
 
 export interface Product {
   id: string
@@ -23,7 +24,7 @@ interface ProductState {
 export const useProductStore = create<ProductState>()(
   persist(
     (set) => ({
-      products: [],
+      products: initialProducts,
 
       addProduct: (product) => {
         const safeProduct: Product = {

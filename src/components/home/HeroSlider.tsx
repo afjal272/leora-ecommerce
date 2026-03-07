@@ -16,7 +16,7 @@ const slides = [
     text: "Crafted for elegance. Designed for confidence."
   },
   {
-    image: "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
+    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
     title: "Modern Fashion",
     text: "Premium quality fashion for everyday life."
   },

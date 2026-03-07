@@ -124,11 +124,11 @@ export default function Navbar() {
                 Shop
               </Link>
 
-              <Link href="/blog" className="hover:text-gray-600 transition">
+              <Link href="/#" className="hover:text-gray-600 transition">
                 Blog
               </Link>
 
-              <Link href="/contact" className="hover:text-gray-600 transition">
+              <Link href="/#" className="hover:text-gray-600 transition">
                 Contact
               </Link>
 

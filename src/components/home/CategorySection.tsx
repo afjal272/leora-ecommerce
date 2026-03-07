@@ -21,7 +21,7 @@ const categories = [
   },
   {
     name: "Accessories",
-    image: "https://images.unsplash.com/photo-1511556670410-f0f4e6c8c5b1",
+    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa",
     slug: "accessories"
   }
 ]
