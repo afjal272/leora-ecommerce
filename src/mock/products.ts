@@ -98,4 +98,39 @@ export const products: Product[] = [
     stock: 15,
   },
 
+  {
+    id: "7",
+    name: "Leora Premium Leather Bag",
+    slug: "leora-premium-leather-bag",
+    description: "Luxury handcrafted leather bag made from premium leather with durable stitching and elegant design.",
+    price: 499,
+    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3",
+    images: [
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3",
+      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7",
+      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"
+    ],
+    category: "bags",
+    stock: 15,
+  },
+ 
+
+  
+  {
+    id: "8",
+    name: "Leora Black Hoodie",
+    slug: "leora-black-hoodie",
+    description: "Premium winter hoodie with soft fabric and modern streetwear design.",
+    price: 2499,
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7",
+    images: [
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7",
+      "https://images.unsplash.com/photo-1520975928316-56c1f0a4c5c6",
+      "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
+    ],
+    category: "hoodies",
+    stock: 20,
+  },
+
+
 ]
