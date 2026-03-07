@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { useProductStore } from "@/store/product.store"
+import { useStore } from "@/hooks/useStore"
 import { useCartStore } from "@/store/cart.store"
 import { useState } from "react"
 import Link from "next/link"
@@ -13,7 +14,8 @@ export default function ProductDetailPage() {
   const params = useParams<{ slug: string }>()
   const slug = params.slug
 
-  const { products } = useProductStore()
+  const _products = useStore(useProductStore, (state) => state.products)
+  const products = _products || []
   const addToCart = useCartStore((state) => state.addToCart)
 
   const product = products.find((p) => p.slug === slug)

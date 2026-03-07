@@ -7,11 +7,13 @@ import "swiper/css"
 import "swiper/css/navigation"
 
 import { useProductStore } from "@/store/product.store"
+import { useStore } from "@/hooks/useStore"
 import ProductCard from "@/components/product/product-card"
 
 export default function NewArrivals() {
 
-  const products = useProductStore((state) => state.products)
+  const _products = useStore(useProductStore, (state) => state.products)
+  const products = _products || []
 
   const newProducts = products.slice(0, 10)
 

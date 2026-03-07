@@ -3,10 +3,11 @@
 import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { useProductStore, Product } from "@/store/product.store"
+import { useStore } from "@/hooks/useStore"
 import ProductCard from "@/components/product/product-card"
 
 export default function ProductsPage() {
-  const { products } = useProductStore()
+  const products = useStore(useProductStore, (state) => state.products) ?? []
 
   const searchParams = useSearchParams()
   const urlSearch = searchParams.get("search") || ""

@@ -8,10 +8,11 @@ import CategorySection from "@/components/home/CategorySection"
 import NewArrivals from "@/components/home/NewArrivals"
 
 import { useProductStore } from "@/store/product.store"
+import { useStore } from "@/hooks/useStore"
 import ProductCard from "@/components/product/product-card"
 
 export default function HomePage() {
-  const products = useProductStore((state) => state.products)
+  const products = useStore(useProductStore, (state) => state.products) ?? []
   const featured = products.slice(0, 12)
 
   return (
