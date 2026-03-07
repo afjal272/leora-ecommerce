@@ -27,7 +27,10 @@ export default function OTPPage() {
     }
   }
 
-  const handleBackspace = (e: any, index: number) => {
+  const handleBackspace = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
 
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputs.current[index - 1]?.focus()
@@ -65,7 +68,9 @@ export default function OTPPage() {
 
             <input
               key={index}
-              ref={(el) => (inputs.current[index] = el)}
+              ref={(el) => {
+                inputs.current[index] = el
+              }}
               type="text"
               maxLength={1}
               value={digit}
