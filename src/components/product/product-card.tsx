@@ -75,7 +75,7 @@ export default function ProductCard({ product }: Props) {
         <div className="absolute bottom-5 left-0 w-full px-5 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white text-black py-3 rounded-full text-sm font-medium border hover:bg-black hover:text-white transition pointer-events-auto shadow-sm"
+            className="w-full bg-white text-black py-3 rounded-full text-sm font-medium hover:bg-black hover:text-white transition pointer-events-auto shadow-sm"
           >
             Add to cart
           </button>
