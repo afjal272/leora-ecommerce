@@ -1,6 +1,8 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
+
 import { products as initialProducts } from "@/mock/products"
+import { ProductVariant } from "@/types/product.types"
 
 export interface Product {
   id: string
@@ -12,10 +14,14 @@ export interface Product {
   slug: string
   category: string
   stock: number
+
+  // ⭐ Color variants for preview
+  variants?: ProductVariant[]
 }
 
 interface ProductState {
   products: Product[]
+
   addProduct: (product: Product) => void
   deleteProduct: (id: string) => void
   reduceStock: (id: string, quantity: number) => void
@@ -24,12 +30,19 @@ interface ProductState {
 export const useProductStore = create<ProductState>()(
   persist(
     (set) => ({
+
       products: initialProducts,
 
       addProduct: (product) => {
+
         const safeProduct: Product = {
           ...product,
+
+          // limit max images
           images: product.images ? product.images.slice(0, 15) : [],
+
+          // ensure variants always defined
+          variants: product.variants ?? [],
         }
 
         set((state) => ({
@@ -42,7 +55,7 @@ export const useProductStore = create<ProductState>()(
           products: state.products.filter((p) => p.id !== id),
         })),
 
-      // ⭐ NEW FUNCTION
+      // ⭐ Reduce stock after order
       reduceStock: (id, quantity) =>
         set((state) => ({
           products: state.products.map((product) =>
@@ -54,6 +67,7 @@ export const useProductStore = create<ProductState>()(
               : product
           ),
         })),
+
     }),
     {
       name: "leora-products",
