@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, Eye } from "lucide-react"
 
 import QuickViewModal from "@/components/product/quick-view-modal"
 
@@ -21,12 +21,10 @@ export default function ProductCard({ product }: Props) {
   const openCart = useCartUIStore((state) => state.openCart)
 
   const { items, toggleWishlist } = useWishlistStore()
-
   const isWishlisted = items.includes(product.id)
 
   const [position, setPosition] = useState({ x: 50, y: 50 })
   const [previewImage, setPreviewImage] = useState<string | null>(null)
-
   const [quickViewOpen, setQuickViewOpen] = useState(false)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -57,7 +55,7 @@ export default function ProductCard({ product }: Props) {
 
     <>
     
-    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+    <div className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
 
       {/* IMAGE AREA */}
       <div
@@ -65,70 +63,64 @@ export default function ProductCard({ product }: Props) {
         className="relative bg-gray-100 aspect-[4/5] w-full overflow-hidden"
       >
 
-        {/* Wishlist */}
-        <button
-          onClick={() => toggleWishlist(product.id)}
-          className="absolute top-3 right-3 z-20 bg-white shadow-sm p-2 rounded-full transition transform hover:scale-110"
-        >
-          <Heart
-            size={16}
-            className={
-              isWishlisted
-                ? "fill-red-500 text-red-500"
-                : "text-gray-500"
-            }
-          />
-        </button>
+        {/* MAIN IMAGE */}
+        <img
+          src={mainImage}
+          alt={product.name}
+          className="absolute w-full h-full object-cover transition duration-500 group-hover:scale-110"
+          style={{
+            transformOrigin: `${position.x}% ${position.y}%`
+          }}
+        />
 
-        <Link
-          href={`/products/${product.slug}`}
-          className="block w-full h-full"
-        >
-
-          {/* MAIN IMAGE */}
+        {/* HOVER IMAGE */}
+        {hoverImage && (
           <img
-            src={mainImage}
+            src={hoverImage}
             alt={product.name}
-            className="absolute w-full h-full object-cover transform-gpu transition duration-500 group-hover:scale-110"
+            className="absolute w-full h-full object-cover opacity-0 transition duration-500 group-hover:opacity-100 group-hover:scale-110"
             style={{
               transformOrigin: `${position.x}% ${position.y}%`
             }}
           />
+        )}
 
-          {/* HOVER IMAGE */}
-          {hoverImage && (
-            <img
-              src={hoverImage}
-              alt={product.name}
-              className="absolute w-full h-full object-cover opacity-0 transform-gpu transition duration-500 group-hover:opacity-100 group-hover:scale-110"
-              style={{
-                transformOrigin: `${position.x}% ${position.y}%`
-              }}
+        {/* RIGHT SIDE ICONS */}
+        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
+
+          {/* Wishlist */}
+          <button
+            onClick={() => toggleWishlist(product.id)}
+            className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
+          >
+            <Heart
+              size={16}
+              className={
+                isWishlisted
+                  ? "fill-red-500 text-red-500"
+                  : "text-gray-600"
+              }
             />
-          )}
+          </button>
 
-        </Link>
-
-        {/* QUICK VIEW BUTTON */}
-        <div className="absolute bottom-16 left-0 w-full px-5 opacity-0 group-hover:opacity-100 transition">
-
+          {/* Quick View */}
           <button
             onClick={() => setQuickViewOpen(true)}
-            className="w-full bg-white text-black py-2 rounded-full text-sm font-medium shadow hover:bg-black hover:text-white transition"
+            className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
           >
-            Quick View
+            <Eye size={16} />
           </button>
 
         </div>
 
         {/* ADD TO CART */}
-        <div className="absolute bottom-5 left-0 w-full px-5 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+        <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition">
 
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white text-black py-3 rounded-full text-sm font-medium hover:bg-black hover:text-white transition pointer-events-auto shadow-sm"
+            className="w-full bg-black text-white py-3 text-sm font-medium hover:bg-gray-900"
           >
-            Add to cart
+            Add to Cart
           </button>
 
         </div>
