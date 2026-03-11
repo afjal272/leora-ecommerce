@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { Heart } from "lucide-react"
 
+import QuickViewModal from "@/components/product/quick-view-modal"
+
 import { Product } from "@/types/product.types"
 import { useCartStore } from "@/store/cart.store"
 import { useCartUIStore } from "@/store/cart-ui.store"
@@ -24,6 +26,8 @@ export default function ProductCard({ product }: Props) {
 
   const [position, setPosition] = useState({ x: 50, y: 50 })
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
 
@@ -51,6 +55,8 @@ export default function ProductCard({ product }: Props) {
 
   return (
 
+    <>
+    
     <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
 
       {/* IMAGE AREA */}
@@ -102,6 +108,18 @@ export default function ProductCard({ product }: Props) {
           )}
 
         </Link>
+
+        {/* QUICK VIEW BUTTON */}
+        <div className="absolute bottom-16 left-0 w-full px-5 opacity-0 group-hover:opacity-100 transition">
+
+          <button
+            onClick={() => setQuickViewOpen(true)}
+            className="w-full bg-white text-black py-2 rounded-full text-sm font-medium shadow hover:bg-black hover:text-white transition"
+          >
+            Quick View
+          </button>
+
+        </div>
 
         {/* ADD TO CART */}
         <div className="absolute bottom-5 left-0 w-full px-5 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
@@ -156,5 +174,14 @@ export default function ProductCard({ product }: Props) {
       </div>
 
     </div>
+
+    {/* QUICK VIEW MODAL */}
+    <QuickViewModal
+      product={product}
+      open={quickViewOpen}
+      onClose={() => setQuickViewOpen(false)}
+    />
+
+    </>
   )
 }
