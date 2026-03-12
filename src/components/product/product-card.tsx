@@ -23,9 +23,9 @@ export default function ProductCard({ product }: Props) {
   const { items, toggleWishlist } = useWishlistStore()
   const isWishlisted = items.includes(product.id)
 
-  const [position, setPosition] = useState({ x: 50, y: 50 })
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [position, setPosition] = useState({ x: 50, y: 50 })
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
 
@@ -39,6 +39,7 @@ export default function ProductCard({ product }: Props) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     addToCart(product.id)
     openCart()
   }
@@ -54,126 +55,131 @@ export default function ProductCard({ product }: Props) {
   return (
 
     <>
-    
-    <div className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+      <div className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition overflow-hidden">
 
-      {/* IMAGE AREA */}
-      <div
-        onMouseMove={handleMouseMove}
-        className="relative bg-gray-100 aspect-[4/5] w-full overflow-hidden"
-      >
+        {/* IMAGE */}
+        <Link
+          href={`/products/${product.slug}`}
+          className="block"
+        >
 
-        {/* MAIN IMAGE */}
-        <img
-          src={mainImage}
-          alt={product.name}
-          className="absolute w-full h-full object-cover transition duration-500 group-hover:scale-110"
-          style={{
-            transformOrigin: `${position.x}% ${position.y}%`
-          }}
-        />
-
-        {/* HOVER IMAGE */}
-        {hoverImage && (
-          <img
-            src={hoverImage}
-            alt={product.name}
-            className="absolute w-full h-full object-cover opacity-0 transition duration-500 group-hover:opacity-100 group-hover:scale-110"
-            style={{
-              transformOrigin: `${position.x}% ${position.y}%`
-            }}
-          />
-        )}
-
-        {/* RIGHT SIDE ICONS */}
-        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
-
-          {/* Wishlist */}
-          <button
-            onClick={() => toggleWishlist(product.id)}
-            className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
+          <div
+            onMouseMove={handleMouseMove}
+            className="relative bg-gray-100 aspect-[4/5] w-full overflow-hidden"
           >
-            <Heart
-              size={16}
-              className={
-                isWishlisted
-                  ? "fill-red-500 text-red-500"
-                  : "text-gray-600"
-              }
+
+            <img
+              src={mainImage}
+              alt={product.name}
+              className="absolute w-full h-full object-cover transition duration-500 group-hover:scale-110"
+              style={{
+                transformOrigin: `${position.x}% ${position.y}%`
+              }}
             />
-          </button>
 
-          {/* Quick View */}
-          <button
-            onClick={() => setQuickViewOpen(true)}
-            className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
-          >
-            <Eye size={16} />
-          </button>
+            {hoverImage && (
+              <img
+                src={hoverImage}
+                alt={product.name}
+                className="absolute w-full h-full object-cover opacity-0 transition duration-500 group-hover:opacity-100 group-hover:scale-110"
+                style={{
+                  transformOrigin: `${position.x}% ${position.y}%`
+                }}
+              />
+            )}
 
-        </div>
-
-        {/* ADD TO CART */}
-        <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition">
-
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-black text-white py-3 text-sm font-medium hover:bg-gray-900"
-          >
-            Add to Cart
-          </button>
-
-        </div>
-
-      </div>
-
-      {/* PRODUCT INFO */}
-      <div className="pt-4 pb-5 px-3">
-
-        <h3 className="text-sm font-medium text-gray-900 hover:text-black transition">
-          {product.name}
-        </h3>
-
-        <p className="text-gray-500 text-xs mt-1">
-          {product.category}
-        </p>
-
-        {/* VARIANT PREVIEW */}
-        {product.variants && product.variants.length > 0 && (
-
-          <div className="flex gap-2 mt-3">
-
-            {product.variants.map((variant) => (
+            {/* ACTION ICONS */}
+            <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
 
               <button
-                key={variant.color}
-                onMouseEnter={() => setPreviewImage(variant.image)}
-                onMouseLeave={() => setPreviewImage(null)}
-                className="w-4 h-4 rounded-full border border-gray-300 hover:scale-110 transition"
-                style={{ backgroundColor: variant.color }}
-              />
+                onClick={(e) => {
+                  e.preventDefault()
+                  toggleWishlist(product.id)
+                }}
+                className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
+              >
+                <Heart
+                  size={16}
+                  className={
+                    isWishlisted
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-600"
+                  }
+                />
+              </button>
 
-            ))}
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setQuickViewOpen(true)
+                }}
+                className="bg-white p-2 rounded-full shadow hover:scale-110 transition"
+              >
+                <Eye size={16} />
+              </button>
+
+            </div>
+
+            {/* ADD TO CART */}
+            <div className="absolute bottom-4 left-0 w-full px-4 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-white text-black py-2.5 rounded-full text-sm font-medium hover:bg-black hover:text-white transition shadow"
+              >
+                Add to cart
+              </button>
+
+            </div>
 
           </div>
 
-        )}
+        </Link>
 
-        <p className="mt-2 font-semibold text-black">
-          ₹{product.price}
-        </p>
+        {/* PRODUCT INFO */}
+        <div className="pt-4 pb-5 px-3">
+
+          <h3 className="text-sm font-medium text-gray-900 hover:text-black transition">
+            {product.name}
+          </h3>
+
+          <p className="text-xs text-gray-500 mt-1">
+            {product.category}
+          </p>
+
+          {product.variants && product.variants.length > 0 && (
+
+            <div className="flex gap-2 mt-3">
+
+              {product.variants.map((variant) => (
+
+                <button
+                  key={variant.color}
+                  onMouseEnter={() => setPreviewImage(variant.image)}
+                  onMouseLeave={() => setPreviewImage(null)}
+                  className="w-4 h-4 rounded-full border border-gray-300 hover:scale-110 transition"
+                  style={{ backgroundColor: variant.color }}
+                />
+
+              ))}
+
+            </div>
+
+          )}
+
+          <p className="mt-2 font-semibold text-black">
+            ₹{product.price}
+          </p>
+
+        </div>
 
       </div>
 
-    </div>
-
-    {/* QUICK VIEW MODAL */}
-    <QuickViewModal
-      product={product}
-      open={quickViewOpen}
-      onClose={() => setQuickViewOpen(false)}
-    />
-
+      <QuickViewModal
+        product={product}
+        open={quickViewOpen}
+        onClose={() => setQuickViewOpen(false)}
+      />
     </>
   )
 }
