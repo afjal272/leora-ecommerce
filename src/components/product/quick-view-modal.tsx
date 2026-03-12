@@ -1,6 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
+import { createPortal } from "react-dom"
 import { X } from "lucide-react"
+
 import { Product } from "@/types/product.types"
 import { useCartStore } from "@/store/cart.store"
 import { useCartUIStore } from "@/store/cart-ui.store"
@@ -16,6 +19,20 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
   const addToCart = useCartStore((state) => state.addToCart)
   const openCart = useCartUIStore((state) => state.openCart)
 
+  useEffect(() => {
+
+    if (open) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
+
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+
+  }, [open])
+
   if (!open) return null
 
   const handleAddToCart = () => {
@@ -24,63 +41,70 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
     onClose()
   }
 
-  return (
+  return createPortal(
 
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
 
-      <div className="relative bg-white w-[900px] max-w-full rounded-xl grid md:grid-cols-2 overflow-hidden">
+      {/* overlay click close */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0"
+      />
 
-        {/* CLOSE BUTTON */}
+      {/* modal */}
+      <div className="relative bg-white rounded-xl max-w-5xl w-full mx-6 grid md:grid-cols-2 overflow-hidden shadow-2xl">
+
+        {/* close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 p-2 rounded-full hover:bg-gray-100"
+          className="absolute top-4 right-4 z-20 text-gray-500 hover:text-black"
         >
-          <X size={20} />
+          <X size={22} />
         </button>
 
         {/* IMAGE */}
-        <div className="bg-gray-100 flex items-center justify-center p-8">
+        <div className="bg-gray-100">
 
           <img
-            src={product.images?.[0] || product.image}
+            src={product.image}
             alt={product.name}
-            className="max-h-[420px] object-contain"
+            className="w-full h-full object-cover"
           />
 
         </div>
 
-        {/* INFO */}
-        <div className="p-8 flex flex-col">
+        {/* CONTENT */}
+        <div className="p-8 flex flex-col justify-center">
 
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-2xl font-semibold mb-3">
             {product.name}
           </h2>
 
-          <p className="text-xl font-bold mt-3">
+          <p className="text-xl font-semibold mb-4">
             ₹{product.price}
           </p>
 
-          <p className="text-gray-600 text-sm mt-4">
+          <p className="text-gray-600 text-sm mb-6">
             {product.description}
           </p>
 
           {/* COLOR VARIANTS */}
           {product.variants && product.variants.length > 0 && (
 
-            <div className="mt-6">
+            <div className="mb-6">
 
-              <p className="text-sm font-medium mb-2">
+              <p className="text-sm mb-2 font-medium">
                 Select Color
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex gap-2">
 
-                {product.variants.map((v) => (
+                {product.variants.map((variant) => (
 
                   <div
-                    key={v.color}
+                    key={variant.color}
                     className="w-6 h-6 rounded-full border"
-                    style={{ backgroundColor: v.color }}
+                    style={{ backgroundColor: variant.color }}
                   />
 
                 ))}
@@ -94,7 +118,7 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
           {/* ADD TO CART */}
           <button
             onClick={handleAddToCart}
-            className="mt-8 bg-black text-white py-3 rounded-full hover:bg-gray-900 transition"
+            className="bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition"
           >
             Add to Cart
           </button>
@@ -103,6 +127,9 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
       </div>
 
-    </div>
+    </div>,
+
+    document.body
+
   )
 }
