@@ -101,7 +101,7 @@ export default function Navbar() {
         Bulk & Wholesale Orders Available — Contact for special pricing
       </div>
 
-      <header className="sticky top-0 z-50 bg-white border-b">
+      <header className="sticky top-0 z-50 bg-white">
 
         <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
 

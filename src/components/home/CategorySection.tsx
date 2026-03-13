@@ -3,21 +3,32 @@
 import Link from "next/link"
 import Image from "next/image"
 
-const categories = [
+type Category = {
+  name: string
+  image: string
+  slug: string
+}
+
+type CategoryCardProps = {
+  category: Category
+  big?: boolean
+}
+
+const categories: Category[] = [
   {
     name: "Clothing",
     image: "https://images.unsplash.com/photo-1520975661595-6453be3f7070?q=80&w=1200",
     slug: "tshirts"
   },
   {
-    name: "Sunglasses",
-    image: "https://images.unsplash.com/photo-1577803645773-f96470509666?q=80&w=1200",
-    slug: "accessories"
-  },
-  {
     name: "Bags",
     image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1200",
     slug: "bags"
+  },
+  {
+    name: "Sunglasses",
+    image: "https://images.unsplash.com/photo-1577803645773-f96470509666?q=80&w=1200",
+    slug: "accessories"
   },
   {
     name: "Sneakers",
@@ -29,67 +40,94 @@ const categories = [
 export default function CategorySection() {
 
   return (
-    <section className="max-w-[1480px] mx-auto px-6 lg:px-8 py-20">
 
-      <div className="text-center mb-12">
+    <section className="max-w-[1480px] mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-20">
 
-        <h2 className="text-3xl font-semibold">
+      {/* Header */}
+      <div className="text-center mb-10 md:mb-12">
+
+        <h2 className="text-2xl md:text-3xl font-semibold">
           Featured Collections
         </h2>
 
-        <p className="text-gray-500 mt-2 text-sm">
-          Upgrade your style with our curated sets. Choose confidence.
+        <p className="text-gray-600 mt-2 text-sm md:text-base max-w-xl mx-auto">
+          Upgrade your style with our curated sets. Choose confidence,
+          embrace your unique look.
         </p>
 
       </div>
 
-      {/* UMINO STYLE LAYOUT */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* MOBILE + DESKTOP LAYOUT */}
+      <div className="flex gap-4 md:grid md:grid-cols-3 md:gap-6">
 
-        {/* LEFT BIG */}
-        <CategoryCard category={categories[0]} />
+        {/* LEFT COLUMN */}
+        <div className="flex flex-col gap-4 w-1/2">
 
-        {/* MIDDLE STACK */}
-        <div className="flex flex-col gap-6">
-          <CategoryCard category={categories[1]} small />
-          <CategoryCard category={categories[2]} small />
+          <CategoryCard
+            category={categories[0]}
+            big
+          />
+
+          <CategoryCard
+            category={categories[2]}
+          />
+
         </div>
 
-        {/* RIGHT BIG */}
-        <CategoryCard category={categories[3]} />
+        {/* RIGHT COLUMN */}
+        <div className="flex flex-col gap-4 w-1/2">
+
+          <CategoryCard
+            category={categories[1]}
+          />
+
+          <CategoryCard
+            category={categories[3]}
+            big
+          />
+
+        </div>
+
+        {/* DESKTOP EXTRA SPACING */}
+        <div className="hidden md:block"></div>
 
       </div>
 
     </section>
+
   )
+
 }
 
-
-function CategoryCard({ category, small }: any) {
+function CategoryCard({
+  category,
+  big
+}: CategoryCardProps) {
 
   return (
 
     <Link
       href={`/products?category=${category.slug}`}
-      className={`group relative overflow-hidden rounded-2xl ${
-        small ? "h-[320px]" : "h-[660px]"
-      }`}
+      className={`group relative overflow-hidden rounded-xl
+      ${big ? "h-[260px] md:h-[700px]" : "h-[160px] md:h-[338px]"}
+      `}
     >
 
       <Image
         src={category.image}
         alt={category.name}
         fill
-        className="object-cover transition duration-700 group-hover:scale-110"
+        sizes="(max-width:768px) 50vw, 33vw"
+        className="object-cover transition duration-700 ease-out group-hover:scale-110"
       />
 
       {/* overlay */}
       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition" />
 
-      {/* pill button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+      {/* label */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
 
-        <span className="bg-white px-6 py-2 rounded-full text-sm font-medium shadow-md">
+        <span className="bg-white px-5 py-1.5 rounded-full text-xs md:text-sm font-medium shadow-md">
           {category.name}
         </span>
 
@@ -98,4 +136,5 @@ function CategoryCard({ category, small }: any) {
     </Link>
 
   )
+
 }
