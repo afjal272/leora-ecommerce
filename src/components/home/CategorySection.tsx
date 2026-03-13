@@ -5,23 +5,23 @@ import Image from "next/image"
 
 const categories = [
   {
-    name: "Bags",
-    image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7",
-    slug: "bags"
-  },
-  {
-    name: "Perfumes",
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f",
-    slug: "perfumes"
-  },
-  {
-    name: "T-Shirts",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+    name: "Clothing",
+    image: "https://images.unsplash.com/photo-1520975661595-6453be3f7070?q=80&w=1200",
     slug: "tshirts"
   },
   {
-    name: "Accessories",
-    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa",
+    name: "Sunglasses",
+    image: "https://images.unsplash.com/photo-1577803645773-f96470509666?q=80&w=1200",
+    slug: "accessories"
+  },
+  {
+    name: "Bags",
+    image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1200",
+    slug: "bags"
+  },
+  {
+    name: "Sneakers",
+    image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?q=80&w=1200",
     slug: "accessories"
   }
 ]
@@ -29,47 +29,73 @@ const categories = [
 export default function CategorySection() {
 
   return (
-    <section className="max-w-[1400px] mx-auto px-6 lg:px-8 py-16">
+    <section className="max-w-[1480px] mx-auto px-6 lg:px-8 py-20">
 
-      <h2 className="text-3xl font-semibold mb-10">
-        Shop by Category
-      </h2>
+      <div className="text-center mb-12">
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <h2 className="text-3xl font-semibold">
+          Featured Collections
+        </h2>
 
-        {categories.map((cat) => (
+        <p className="text-gray-500 mt-2 text-sm">
+          Upgrade your style with our curated sets. Choose confidence.
+        </p>
 
-          <Link
-            key={cat.slug}
-            href={`/products?category=${cat.slug}`}
-            className="group relative overflow-hidden rounded-xl"
-          >
+      </div>
 
-            <div className="relative aspect-square">
+      {/* UMINO STYLE LAYOUT */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-              <Image
-                src={cat.image}
-                alt={cat.name}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+        {/* LEFT BIG */}
+        <CategoryCard category={categories[0]} />
 
-            </div>
+        {/* MIDDLE STACK */}
+        <div className="flex flex-col gap-6">
+          <CategoryCard category={categories[1]} small />
+          <CategoryCard category={categories[2]} small />
+        </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex items-end p-4">
-
-              <h3 className="text-white text-lg font-semibold">
-                {cat.name}
-              </h3>
-
-            </div>
-
-          </Link>
-
-        ))}
+        {/* RIGHT BIG */}
+        <CategoryCard category={categories[3]} />
 
       </div>
 
     </section>
+  )
+}
+
+
+function CategoryCard({ category, small }: any) {
+
+  return (
+
+    <Link
+      href={`/products?category=${category.slug}`}
+      className={`group relative overflow-hidden rounded-2xl ${
+        small ? "h-[320px]" : "h-[660px]"
+      }`}
+    >
+
+      <Image
+        src={category.image}
+        alt={category.name}
+        fill
+        className="object-cover transition duration-700 group-hover:scale-110"
+      />
+
+      {/* overlay */}
+      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition" />
+
+      {/* pill button */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+
+        <span className="bg-white px-6 py-2 rounded-full text-sm font-medium shadow-md">
+          {category.name}
+        </span>
+
+      </div>
+
+    </Link>
+
   )
 }

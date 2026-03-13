@@ -28,10 +28,16 @@ export default function NewArrivals() {
     <section className="max-w-[1400px] mx-auto px-6 lg:px-8 py-16">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
-        <h2 className="text-3xl font-semibold">
+      <div className="text-center mb-12">
+
+         <h2 className="text-3xl font-semibold">
           New Arrivals
-        </h2>
+         </h2>
+
+         <p className="text-gray-500 mt-2 text-sm">
+          Find the top most popular items in Umino best sellers.
+         </p>
+
       </div>
 
       <div className="relative group/slider">
