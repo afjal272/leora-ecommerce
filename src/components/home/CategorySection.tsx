@@ -57,39 +57,40 @@ export default function CategorySection() {
 
       </div>
 
-      {/* MOBILE + DESKTOP LAYOUT */}
-      <div className="flex gap-4 md:grid md:grid-cols-3 md:gap-6">
 
-        {/* LEFT COLUMN */}
+      {/* MOBILE LAYOUT */}
+      <div className="flex gap-4 md:hidden">
+
         <div className="flex flex-col gap-4 w-1/2">
 
-          <CategoryCard
-            category={categories[0]}
-            big
-          />
+          <CategoryCard category={categories[0]} big />
 
-          <CategoryCard
-            category={categories[2]}
-          />
+          <CategoryCard category={categories[2]} />
 
         </div>
 
-        {/* RIGHT COLUMN */}
         <div className="flex flex-col gap-4 w-1/2">
 
-          <CategoryCard
-            category={categories[1]}
-          />
+          <CategoryCard category={categories[1]} />
 
-          <CategoryCard
-            category={categories[3]}
-            big
-          />
+          <CategoryCard category={categories[3]} big />
 
         </div>
 
-        {/* DESKTOP EXTRA SPACING */}
-        <div className="hidden md:block"></div>
+      </div>
+
+
+      {/* DESKTOP LAYOUT (ORIGINAL) */}
+      <div className="hidden md:grid md:grid-cols-3 gap-6">
+
+        <CategoryCard category={categories[0]} big />
+
+        <div className="flex flex-col gap-6">
+          <CategoryCard category={categories[1]} />
+          <CategoryCard category={categories[2]} />
+        </div>
+
+        <CategoryCard category={categories[3]} big />
 
       </div>
 
@@ -99,10 +100,8 @@ export default function CategorySection() {
 
 }
 
-function CategoryCard({
-  category,
-  big
-}: CategoryCardProps) {
+
+function CategoryCard({ category, big }: CategoryCardProps) {
 
   return (
 
@@ -121,10 +120,8 @@ function CategoryCard({
         className="object-cover transition duration-700 ease-out group-hover:scale-110"
       />
 
-      {/* overlay */}
       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition" />
 
-      {/* label */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
 
         <span className="bg-white px-5 py-1.5 rounded-full text-xs md:text-sm font-medium shadow-md">
