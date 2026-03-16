@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShoppingCart, Heart, Search } from "lucide-react"
+import { ShoppingCart, Heart, Search, Menu, X } from "lucide-react"
 
 import { useCartStore } from "@/store/cart.store"
 import { useAuthStore } from "@/store/auth.store"
@@ -25,6 +25,7 @@ export default function Navbar() {
   const [search, setSearch] = useState("")
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileMenu, setMobileMenu] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -96,7 +97,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Announcement Bar */}
+      {/* Announcement */}
       <div className="bg-black text-white text-base text-center py-4 font-semibold tracking-wide">
         Bulk & Wholesale Orders Available — Contact for special pricing
       </div>
@@ -105,22 +106,32 @@ export default function Navbar() {
 
         <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
 
-          {/* relative important for center nav */}
-          <div className="flex items-center justify-between h-[70px] relative">
+          <div className="flex items-center justify-between h-[70px]">
 
-            {/* LOGO */}
-            <Link
-              href="/"
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="text-2xl font-semibold tracking-[0.25em]"
-            >
-              LEORA
-            </Link>
+            {/* LEFT: Mobile Menu + Logo */}
+            <div className="flex items-center gap-4">
 
-            {/* NAV LINKS (Perfect Center) */}
-            <nav className="hidden md:flex items-center gap-12 text-sm font-medium tracking-wide absolute left-1/2 -translate-x-1/2">
+              <button
+                className="md:hidden"
+                onClick={() => setMobileMenu(!mobileMenu)}
+              >
+                {mobileMenu ? <X size={24} /> : <Menu size={24} />}
+              </button>
+
+              <Link
+                href="/"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="text-2xl font-semibold tracking-[0.25em]"
+              >
+                LEORA
+              </Link>
+
+            </div>
+
+            {/* CENTER NAV */}
+            <nav className="hidden md:flex items-center gap-12 text-sm font-medium tracking-wide">
 
               <Link href="/products" className="hover:text-gray-600 transition">
                 Shop
@@ -142,7 +153,7 @@ export default function Navbar() {
               {/* SEARCH */}
               <div
                 ref={searchRef}
-                className="relative hidden sm:block w-52"
+                className="relative hidden md:block w-52"
               >
 
                 <form
@@ -317,6 +328,52 @@ export default function Navbar() {
           </div>
 
         </div>
+
+        {/* MOBILE MENU */}
+        <AnimatePresence>
+
+          {mobileMenu && (
+
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white border-t"
+            >
+
+              <div className="flex flex-col px-6 py-6 gap-5 text-sm font-medium">
+
+                <Link
+                  href="/products"
+                  onClick={() => setMobileMenu(false)}
+                  className="hover:text-gray-600"
+                >
+                  Shop
+                </Link>
+
+                <Link
+                  href="/#"
+                  onClick={() => setMobileMenu(false)}
+                  className="hover:text-gray-600"
+                >
+                  Blog
+                </Link>
+
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileMenu(false)}
+                  className="hover:text-gray-600"
+                >
+                  Contact
+                </Link>
+
+              </div>
+
+            </motion.div>
+
+          )}
+
+        </AnimatePresence>
 
       </header>
 

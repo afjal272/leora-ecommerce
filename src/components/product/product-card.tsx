@@ -55,7 +55,7 @@ export default function ProductCard({ product }: Props) {
   return (
 
     <>
-      <div className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition overflow-hidden">
+      <div className="group bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden">
 
         {/* IMAGE */}
         <Link
@@ -65,13 +65,13 @@ export default function ProductCard({ product }: Props) {
 
           <div
             onMouseMove={handleMouseMove}
-            className="relative bg-gray-100 aspect-[4/5] w-full overflow-hidden"
+            className="relative bg-gray-100 aspect-[3/4] w-full overflow-hidden"
           >
 
             <img
               src={mainImage}
               alt={product.name}
-              className="absolute w-full h-full object-cover transition duration-500 group-hover:scale-110"
+              className="absolute w-full h-full object-cover transition duration-500 md:group-hover:scale-110"
               style={{
                 transformOrigin: `${position.x}% ${position.y}%`
               }}
@@ -81,7 +81,7 @@ export default function ProductCard({ product }: Props) {
               <img
                 src={hoverImage}
                 alt={product.name}
-                className="absolute w-full h-full object-cover opacity-0 transition duration-500 group-hover:opacity-100 group-hover:scale-110"
+                className="absolute w-full h-full object-cover opacity-0 transition duration-500 md:group-hover:opacity-100 md:group-hover:scale-110"
                 style={{
                   transformOrigin: `${position.x}% ${position.y}%`
                 }}
@@ -89,7 +89,7 @@ export default function ProductCard({ product }: Props) {
             )}
 
             {/* ACTION ICONS */}
-            <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
+            <div className="absolute right-2 top-2 flex flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition">
 
               <button
                 onClick={(e) => {
@@ -121,11 +121,11 @@ export default function ProductCard({ product }: Props) {
             </div>
 
             {/* ADD TO CART */}
-            <div className="absolute bottom-4 left-0 w-full px-4 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+           <div className="hidden md:block absolute bottom-3 left-0 w-full px-3 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
 
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-white text-black py-2.5 rounded-full text-sm font-medium hover:bg-black hover:text-white transition shadow"
+                className="w-full bg-white text-black py-2 rounded-full text-xs md:text-sm font-medium hover:bg-black hover:text-white transition shadow"
               >
                 Add to cart
               </button>
@@ -137,19 +137,19 @@ export default function ProductCard({ product }: Props) {
         </Link>
 
         {/* PRODUCT INFO */}
-        <div className="pt-4 pb-5 px-3">
+        <div className="pt-2 pb-3 px-2.5 md:px-3">
 
-          <h3 className="text-sm font-medium text-gray-900 hover:text-black transition">
+          <h3 className="text-xs md:text-sm font-medium text-gray-900 hover:text-black transition line-clamp-2">
             {product.name}
           </h3>
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[11px] text-gray-500 mt-0.5">
             {product.category}
           </p>
 
           {product.variants && product.variants.length > 0 && (
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-1.5 mt-1.5">
 
               {product.variants.map((variant) => (
 
@@ -157,7 +157,7 @@ export default function ProductCard({ product }: Props) {
                   key={variant.color}
                   onMouseEnter={() => setPreviewImage(variant.image)}
                   onMouseLeave={() => setPreviewImage(null)}
-                  className="w-4 h-4 rounded-full border border-gray-300 hover:scale-110 transition"
+                  className="w-3.5 h-3.5 rounded-full border border-gray-300 hover:scale-110 transition"
                   style={{ backgroundColor: variant.color }}
                 />
 
@@ -167,7 +167,7 @@ export default function ProductCard({ product }: Props) {
 
           )}
 
-          <p className="mt-2 font-semibold text-black">
+          <p className="mt-1 font-semibold text-black text-xs md:text-sm">
             ₹{product.price}
           </p>
 

@@ -16,22 +16,18 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("all")
   const [sort, setSort] = useState<"default" | "low" | "high">("default")
 
-  // URL search change ho to state sync ho
   useEffect(() => {
     setSearch(urlSearch)
   }, [urlSearch])
 
-  // Dynamic categories
   const categories = useMemo(() => {
     const unique = new Set(products.map((p) => p.category))
     return ["all", ...Array.from(unique)]
   }, [products])
 
-  // Filtering + Sorting
   const filteredProducts = useMemo(() => {
     let result: Product[] = [...products]
 
-    // Search
     if (search.trim()) {
       const query = search.toLowerCase()
       result = result.filter((p) =>
@@ -39,14 +35,12 @@ export default function ProductsPage() {
       )
     }
 
-    // Category
     if (category !== "all") {
       result = result.filter(
         (p) => p.category === category
       )
     }
 
-    // Sorting
     if (sort === "low") {
       result = [...result].sort((a, b) => a.price - b.price)
     }
@@ -65,27 +59,26 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 py-20">
+    <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-10 md:py-20">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
 
-        <h1 className="text-3xl font-semibold">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
+
+        <h1 className="text-2xl md:text-3xl font-semibold">
           All Products ({filteredProducts.length})
         </h1>
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
 
-          {/* Search */}
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border px-4 py-2 rounded-md w-full sm:w-[250px]"
+            className="border px-4 py-2 rounded-md w-full sm:w-[220px]"
           />
 
-          {/* Category */}
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -100,7 +93,6 @@ export default function ProductsPage() {
             ))}
           </select>
 
-          {/* Sort */}
           <select
             value={sort}
             onChange={(e) =>
@@ -118,7 +110,6 @@ export default function ProductsPage() {
             <option value="high">Price: High → Low</option>
           </select>
 
-          {/* Reset */}
           <button
             onClick={resetFilters}
             className="border px-4 py-2 rounded-md hover:bg-gray-100 transition"
@@ -129,7 +120,6 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Empty State */}
       {filteredProducts.length === 0 ? (
         <div className="text-center py-24">
 
@@ -146,14 +136,20 @@ export default function ProductsPage() {
 
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+
           {filteredProducts.map((product) => (
+
             <ProductCard
               key={product.id}
               product={product}
             />
+
           ))}
+
         </div>
+
       )}
 
     </div>
