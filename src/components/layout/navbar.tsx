@@ -329,51 +329,117 @@ export default function Navbar() {
 
         </div>
 
-        {/* MOBILE MENU */}
-        <AnimatePresence>
+        {/* MOBILE MENU DRAWER */}
+<AnimatePresence>
 
-          {mobileMenu && (
+  {mobileMenu && (
 
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-t"
+    <>
+      {/* overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black z-40 md:hidden"
+        onClick={() => setMobileMenu(false)}
+      />
+
+      {/* drawer */}
+      <motion.div
+        initial={{ x: "-100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "-100%" }}
+        transition={{ type: "tween", duration: 0.25 }}
+        className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white z-50 md:hidden shadow-xl flex flex-col"
+      >
+
+        {/* header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-[#0B332E] text-white">
+
+          <span className="font-semibold tracking-wide">
+            MENU
+          </span>
+
+          <button onClick={() => setMobileMenu(false)}>
+            <X size={22} />
+          </button>
+
+        </div>
+
+        {/* links */}
+        <div className="flex flex-col text-sm">
+
+          <Link
+            href="/"
+            onClick={() => setMobileMenu(false)}
+           className="px-6 py-4 border-b border-gray-300 hover:bg-gray-50"
+          >
+            Home
+          </Link>
+
+          <Link
+            href="/products"
+            onClick={() => setMobileMenu(false)}
+            className="px-6 py-4 border-b border-gray-300 hover:bg-gray-50"
+          >
+            Shop
+          </Link>
+
+          <Link
+            href="/#"
+            onClick={() => setMobileMenu(false)}
+            className="px-6 py-4 border-b border-gray-300 hover:bg-gray-50"
+          >
+            Blog
+          </Link>
+
+          <Link
+            href="/contact"
+            onClick={() => setMobileMenu(false)}
+            className="px-6 py-4 border-b border-gray-300 hover:bg-gray-50"
+          >
+            Contact
+          </Link>
+
+          <Link
+            href="/wishlist"
+            onClick={() => setMobileMenu(false)}
+           className="px-6 py-4 border-b border-gray-300 hover:bg-gray-50"
+          >
+            Wishlist
+          </Link>
+
+
+        </div>
+
+        {/* bottom area */}
+        <div className="px-6 py-6 border-t text-sm space-y-4">
+
+          {!user ? (
+            <Link
+              href="/auth/login"
+              onClick={() => setMobileMenu(false)}
+              className="block hover:text-gray-600"
             >
-
-              <div className="flex flex-col px-6 py-6 gap-5 text-sm font-medium">
-
-                <Link
-                  href="/products"
-                  onClick={() => setMobileMenu(false)}
-                  className="hover:text-gray-600"
-                >
-                  Shop
-                </Link>
-
-                <Link
-                  href="/#"
-                  onClick={() => setMobileMenu(false)}
-                  className="hover:text-gray-600"
-                >
-                  Blog
-                </Link>
-
-                <Link
-                  href="/contact"
-                  onClick={() => setMobileMenu(false)}
-                  className="hover:text-gray-600"
-                >
-                  Contact
-                </Link>
-
-              </div>
-
-            </motion.div>
-
+              Login / Register
+            </Link>
+          ) : (
+            <Link
+              href="/profile"
+              onClick={() => setMobileMenu(false)}
+              className="block hover:text-gray-600"
+            >
+              My Account
+            </Link>
           )}
 
-        </AnimatePresence>
+        </div>
+
+      </motion.div>
+    </>
+  )}
+
+</AnimatePresence>
 
       </header>
 
