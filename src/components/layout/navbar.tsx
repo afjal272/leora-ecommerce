@@ -26,6 +26,7 @@ export default function Navbar() {
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
+  const [mobileSearch, setMobileSearch] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -106,7 +107,7 @@ export default function Navbar() {
 
         <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
 
-          <div className="flex items-center justify-between h-[70px]">
+          <div className="relative flex items-center justify-between h-[70px]">
 
             {/* LEFT: Mobile Menu + Logo */}
             <div className="flex items-center gap-4">
@@ -123,7 +124,7 @@ export default function Navbar() {
                 onClick={() => {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="text-2xl font-semibold tracking-[0.25em]"
+                className="absolute left-1/2 -translate-x-1/2 md:static text-xl md:text-2xl font-semibold tracking-[0.25em]"
               >
                 LEORA
               </Link>
@@ -149,6 +150,16 @@ export default function Navbar() {
 
             {/* RIGHT SIDE */}
             <div className="flex items-center gap-6">
+
+             <button
+             className="md:hidden"
+            onClick={() => {
+              setMobileMenu(false)
+              setMobileSearch(!mobileSearch)
+             }}
+              >
+            <Search size={20} />
+            </button>
 
               {/* SEARCH */}
               <div
@@ -228,7 +239,7 @@ export default function Navbar() {
               {/* Wishlist */}
               <Link
                 href="/wishlist"
-                className="hover:text-gray-600 transition"
+                className="hidden md:block hover:text-gray-600 transition"
               >
                 <Heart size={20} />
               </Link>
@@ -316,7 +327,7 @@ export default function Navbar() {
 
                 <Link
                   href="/auth/login"
-                  className="hover:text-gray-600 transition"
+                  className="hidden md:block hover:text-gray-600 transition"
                 >
                   Login
                 </Link>
@@ -326,13 +337,46 @@ export default function Navbar() {
             </div>
 
           </div>
+         
+            {/* MOBILE SEARCH */}
+{mobileSearch && (
+  <div className="md:hidden px-6 pb-4">
+
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center border rounded-full px-4 py-2 text-sm"
+    >
+      <Search size={16} className="mr-2 text-gray-500" />
+
+      <input
+        type="text"
+        placeholder="Search products..."
+        value={search}
+        onChange={(e) => handleSearchChange(e.target.value)}
+        className="outline-none w-full bg-transparent"
+      />
+
+      <button
+        type="button"
+        onClick={() => setMobileSearch(false)}
+      >
+        <X size={16} />
+      </button>
+
+    </form>
+
+  </div>
+)}
 
         </div>
 
-        {/* MOBILE MENU DRAWER */}
-<AnimatePresence>
 
-  {mobileMenu && (
+
+     {/* MOBILE MENU DRAWER */}
+     
+        <AnimatePresence>
+
+         {mobileMenu && (
 
     <>
       {/* overlay */}
