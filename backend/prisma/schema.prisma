@@ -1,10 +1,21 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
 }
 
 model User {
@@ -12,7 +23,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String   @default("user")
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
 
   orders    Order[]
@@ -27,13 +38,13 @@ model Product {
   stock       Int
   createdAt   DateTime @default(now())
 
-  orders OrderItem[]
+  orders      OrderItem[]
 }
 
 model Order {
   id        String      @id @default(uuid())
   userId    String
-  status    String      @default("pending")
+  status    OrderStatus @default(PENDING)
   total     Float
   createdAt DateTime    @default(now())
 
