@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 
 import authRoutes from "./modules/auth/auth.route"
+import productRoutes from "./modules/product/product.route" // 🔥 ADD THIS
 import { protect } from "./middlewares/auth.middleware"
 
 const app = express()
@@ -18,7 +19,10 @@ app.get("/api", (req, res) => {
 // Auth Routes
 app.use("/api/auth", authRoutes)
 
-// 🔥 Protected Route (NO any)
+// 🔥 PRODUCT ROUTES (ye missing tha)
+app.use("/api/products", productRoutes)
+
+// 🔥 Protected Route
 app.get("/api/profile", protect, (req, res) => {
   res.json({
     success: true,

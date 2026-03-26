@@ -2,12 +2,22 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { useProductStore, Product } from "@/store/product.store"
-import { useStore } from "@/hooks/useStore"
 import ProductCard from "@/components/product/product-card"
 
+export interface Product {
+  id: string
+  title: string
+  price: number
+  image: string
+  description: string
+  category: string
+  stock: number
+}
+
 export default function ProductsPage() {
-  const products = useStore(useProductStore, (state) => state.products) ?? []
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
   const searchParams = useSearchParams()
   const urlSearch = searchParams.get("search") || ""
@@ -15,6 +25,23 @@ export default function ProductsPage() {
   const [search, setSearch] = useState(urlSearch)
   const [category, setCategory] = useState("all")
   const [sort, setSort] = useState<"default" | "low" | "high">("default")
+
+  // 🔥 FETCH FROM BACKEND
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/products")
+        const data = await res.json()
+        setProducts(data.data || [])
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
 
   useEffect(() => {
     setSearch(urlSearch)
@@ -31,126 +58,43 @@ export default function ProductsPage() {
     if (search.trim()) {
       const query = search.toLowerCase()
       result = result.filter((p) =>
-        p.name.toLowerCase().includes(query)
+        p.title.toLowerCase().includes(query)
       )
     }
 
     if (category !== "all") {
-      result = result.filter(
-        (p) => p.category === category
-      )
+      result = result.filter((p) => p.category === category)
     }
 
     if (sort === "low") {
-      result = [...result].sort((a, b) => a.price - b.price)
+      result.sort((a, b) => a.price - b.price)
     }
 
     if (sort === "high") {
-      result = [...result].sort((a, b) => b.price - a.price)
+      result.sort((a, b) => b.price - a.price)
     }
 
     return result
   }, [products, search, category, sort])
 
-  const resetFilters = () => {
-    setSearch("")
-    setCategory("all")
-    setSort("default")
+  if (loading) {
+    return <div className="text-center py-20">Loading...</div>
   }
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-10 md:py-20">
 
-      {/* Header */}
+      <h1 className="text-2xl md:text-3xl font-semibold mb-10">
+        All Products ({filteredProducts.length})
+      </h1>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
 
-        <h1 className="text-2xl md:text-3xl font-semibold">
-          All Products ({filteredProducts.length})
-        </h1>
+        {filteredProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
 
-        <div className="flex flex-col sm:flex-row gap-3">
-
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border px-4 py-2 rounded-md w-full sm:w-[220px]"
-          />
-
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border px-4 py-2 rounded-md"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat === "all"
-                  ? "All Categories"
-                  : cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={sort}
-            onChange={(e) =>
-              setSort(
-                e.target.value as
-                  | "default"
-                  | "low"
-                  | "high"
-              )
-            }
-            className="border px-4 py-2 rounded-md"
-          >
-            <option value="default">Sort By</option>
-            <option value="low">Price: Low → High</option>
-            <option value="high">Price: High → Low</option>
-          </select>
-
-          <button
-            onClick={resetFilters}
-            className="border px-4 py-2 rounded-md hover:bg-gray-100 transition"
-          >
-            Reset
-          </button>
-
-        </div>
       </div>
-
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-24">
-
-          <p className="text-gray-500 text-lg mb-4">
-            No products found
-          </p>
-
-          <button
-            onClick={resetFilters}
-            className="border px-6 py-2 rounded-md hover:bg-gray-100 transition"
-          >
-            Clear Filters
-          </button>
-
-        </div>
-      ) : (
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-
-          {filteredProducts.map((product) => (
-
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-
-          ))}
-
-        </div>
-
-      )}
 
     </div>
   )
