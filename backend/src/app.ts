@@ -2,27 +2,25 @@ import express from "express"
 import cors from "cors"
 
 import authRoutes from "./modules/auth/auth.route"
-import productRoutes from "./modules/product/product.route" // 🔥 ADD THIS
+import productRoutes from "./modules/product/product.route"
 import { protect } from "./middlewares/auth.middleware"
 
 const app = express()
 
-// Middlewares
+// ✅ Middlewares
 app.use(cors())
 app.use(express.json())
 
-// Health check
+// ✅ Health check
 app.get("/api", (req, res) => {
   res.send("Leora API Running")
 })
 
-// Auth Routes
+// ✅ Routes
 app.use("/api/auth", authRoutes)
-
-// 🔥 PRODUCT ROUTES (ye missing tha)
 app.use("/api/products", productRoutes)
 
-// 🔥 Protected Route
+// ✅ Protected test route
 app.get("/api/profile", protect, (req, res) => {
   res.json({
     success: true,
@@ -31,7 +29,7 @@ app.get("/api/profile", protect, (req, res) => {
   })
 })
 
-// 404 handler
+// ❌ 404 handler (LAST me hi hona chahiye)
 app.use((req, res) => {
   res.status(404).json({
     success: false,

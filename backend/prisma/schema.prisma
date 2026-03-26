@@ -30,15 +30,16 @@ model User {
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  title       String
-  description String
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
   price       Float
   image       String
-  stock       Int
-  createdAt   DateTime @default(now())
+  stock       Int          @default(0)
+  createdAt   DateTime     @default(now())
 
-  orders      OrderItem[]
+  orderItems  OrderItem[]  // ✅ THIS FIX
 }
 
 model Order {
