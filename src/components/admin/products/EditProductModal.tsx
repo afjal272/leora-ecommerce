@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { useProductStore } from "../../../store/product.store"
+import { useState, useEffect } from "react"
+import { useProductStore } from "@/store/product.store"
 
 interface Props {
+  product: any
   close: () => void
   onSuccess?: () => void
 }
 
-export default function AddProductModal({ close, onSuccess }: Props) {
+export default function EditProductModal({ product, close, onSuccess }: Props) {
 
-  const { addProduct } = useProductStore()
+  const { updateProduct } = useProductStore() // ✅ FIX (addProduct hata)
 
   const [form, setForm] = useState({
     name: "",
@@ -23,6 +24,27 @@ export default function AddProductModal({ close, onSuccess }: Props) {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
+  // ✅ PREFILL (safe)
+  useEffect(() => {
+    if (product) {
+      setForm({
+        name: product.name || "",
+        price: product.price?.toString() || "",
+        description: product.description || "",
+        category: product.category || "",
+        stock: product.stock?.toString() || "",
+      })
+
+      setImages(
+        Array.isArray(product.images) && product.images.length > 0
+          ? product.images
+          : product.image
+          ? [product.image]
+          : []
+      )
+    }
+  }, [product])
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -34,34 +56,28 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     }))
   }
 
-  // 🔥 FINAL COMPRESSION (better performance, less crash)
+  // ✅ IMAGE COMPRESS (optimized)
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
-
       const reader = new FileReader()
 
       reader.onload = (event) => {
-
         const img = new Image()
         img.src = event.target?.result as string
 
         img.onload = () => {
-
           const canvas = document.createElement("canvas")
           const ctx = canvas.getContext("2d")
 
-          // ✅ improved size control
           const MAX_WIDTH = 800
-          const scale = MAX_WIDTH / img.width
+          const scale = Math.min(1, MAX_WIDTH / img.width)
 
-          canvas.width = MAX_WIDTH
+          canvas.width = img.width * scale
           canvas.height = img.height * scale
 
           ctx?.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-          // ✅ improved compression (less payload, stable server)
-          const compressed = canvas.toDataURL("image/jpeg", 0.6)
-
+          const compressed = canvas.toDataURL("image/jpeg", 0.7)
           resolve(compressed)
         }
       }
@@ -73,7 +89,6 @@ export default function AddProductModal({ close, onSuccess }: Props) {
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-
     const files = e.target.files
     if (!files) return
 
@@ -88,7 +103,8 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handleAdd = async () => {
+  // ✅ UPDATE PRODUCT (FINAL FIX)
+  const handleUpdate = async () => {
 
     if (!form.name || !form.price || images.length === 0) {
       alert("Name, price and at least one image required")
@@ -98,20 +114,23 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     try {
       setLoading(true)
 
-      const res = await fetch("http://localhost:5000/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          price: Number(form.price),
-          description: form.description,
-          category: form.category,
-          stock: Number(form.stock) || 0,
-          images: images, // ✅ multiple images भेज रहा है
-        }),
-      })
+      const res = await fetch(
+        `http://localhost:5000/api/products/${product.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: form.name,
+            price: Number(form.price),
+            description: form.description,
+            category: form.category,
+            stock: Number(form.stock) || 0,
+            images: images, // ✅ multi image
+          }),
+        }
+      )
 
       const data = await res.json()
 
@@ -119,36 +138,26 @@ export default function AddProductModal({ close, onSuccess }: Props) {
         throw new Error(data.message)
       }
 
-      addProduct({
-        id: data.data.id,
-        slug: data.data.slug,
-        name: form.name,
-        price: Number(form.price),
-        description: form.description,
-        category: form.category,
-        stock: Number(form.stock) || 0,
-        image: data.data.image,
-        images: data.data.images,
-      })
+      // ✅ store update (correct)
+      updateProduct(data.data)
 
       onSuccess?.()
       close()
 
     } catch (error: any) {
-      alert(error.message || "Something went wrong")
+      alert(error.message || "Update failed")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
       <div className="bg-white p-6 rounded-xl w-[520px] max-h-[90vh] overflow-y-auto">
 
         <h2 className="text-xl font-semibold mb-6">
-          Add Product
+          Edit Product
         </h2>
 
         <div className="space-y-4">
@@ -240,11 +249,11 @@ export default function AddProductModal({ close, onSuccess }: Props) {
           </button>
 
           <button
-            onClick={handleAdd}
+            onClick={handleUpdate}
             disabled={loading}
             className="bg-black text-white px-4 py-2 rounded"
           >
-            {loading ? "Saving..." : "Save Product"}
+            {loading ? "Updating..." : "Update Product"}
           </button>
 
         </div>

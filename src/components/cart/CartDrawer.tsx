@@ -5,7 +5,6 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useCartStore } from "@/store/cart.store"
-import { useProductStore } from "@/store/product.store"
 
 interface Props {
   open: boolean
@@ -22,31 +21,22 @@ export default function CartDrawer({ open, onClose }: Props) {
     getTotal,
   } = useCartStore()
 
-  const { products } = useProductStore()
-
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Fix hydration mismatch
   if (!mounted) return null
 
-  const cartItems = items
-    .map((item) => {
-      const product = products.find((p) => p.id === item.id)
-
-      if (!product) return null
-
-      return {
-        ...product,
-        quantity: item.quantity,
-      }
-    })
-    .filter(
-      (item): item is NonNullable<typeof item> => item !== null
-    )
+  // SAME STRUCTURE, NO PRODUCT STORE
+  const cartItems = items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    image: item.image,
+    quantity: item.quantity,
+  }))
 
   return (
     <>
@@ -66,14 +56,9 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-lg font-semibold">
-            Your Cart
-          </h2>
+          <h2 className="text-lg font-semibold">Your Cart</h2>
 
-          <button
-            onClick={onClose}
-            className="text-xl"
-          >
+          <button onClick={onClose} className="text-xl">
             ✕
           </button>
         </div>
@@ -90,22 +75,17 @@ export default function CartDrawer({ open, onClose }: Props) {
             )}
 
             {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-4"
-              >
+              <div key={item.id} className="flex gap-4">
 
-                {/* Image */}
                 <div className="relative w-16 h-16 rounded-md overflow-hidden">
                   <Image
-                    src={item.image}
-                    alt={item.name}
+                    src={item.image || "/placeholder.png"}
+                    alt={item.name || "product"}
                     fill
                     className="object-cover"
                   />
                 </div>
 
-                {/* Info */}
                 <div className="flex-1">
 
                   <h3 className="text-sm font-medium">
@@ -144,7 +124,6 @@ export default function CartDrawer({ open, onClose }: Props) {
                   </div>
                 </div>
 
-                {/* Item Price */}
                 <div className="text-sm font-medium">
                   ₹{item.price * item.quantity}
                 </div>

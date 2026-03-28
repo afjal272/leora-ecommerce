@@ -1,16 +1,18 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { useProductStore } from "./product.store"
 
 interface CartItem {
   id: string
   quantity: number
+  name: string
+  price: number
+  image: string
 }
 
 interface CartState {
   items: CartItem[]
 
-  addToCart: (id: string) => void
+  addToCart: (product: Omit<CartItem, "quantity">) => void
   removeFromCart: (id: string) => void
 
   increaseQty: (id: string) => void
@@ -27,14 +29,14 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addToCart: (id) =>
+      addToCart: (product) =>
         set((state) => {
-          const existing = state.items.find((i) => i.id === id)
+          const existing = state.items.find((i) => i.id === product.id)
 
           if (existing) {
             return {
               items: state.items.map((item) =>
-                item.id === id
+                item.id === product.id
                   ? { ...item, quantity: item.quantity + 1 }
                   : item
               ),
@@ -42,7 +44,7 @@ export const useCartStore = create<CartState>()(
           }
 
           return {
-            items: [...state.items, { id, quantity: 1 }],
+            items: [...state.items, { ...product, quantity: 1 }],
           }
         }),
 
@@ -75,15 +77,10 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         const { items } = get()
-        const { products } = useProductStore.getState()
-
-        return items.reduce((total, item) => {
-          const product = products.find((p) => p.id === item.id)
-
-          if (!product) return total
-
-          return total + product.price * item.quantity
-        }, 0)
+        return items.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        )
       },
 
       getItemsCount: () => {

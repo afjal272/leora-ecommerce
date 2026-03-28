@@ -1,27 +1,93 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { useProductStore } from "@/store/product.store"
+import { useProductStore } from "../../../store/product.store"
 import { Search } from "lucide-react"
+import EditProductModal from "./EditProductModal"
 
-export default function ProductTable() {
+type Product = {
+  id: string
+  name: string
+  slug?: string
+  image: string
+  images?: string[]
+  price: number
+  category?: string
+  stock?: number
+}
 
-  const { products, deleteProduct } = useProductStore()
+type Props = {
+  refresh?: boolean
+}
+
+export default function ProductTable({ refresh }: Props) {
+
+  const { products, deleteProduct, setProducts } = useProductStore()
 
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
 
-  const filteredProducts = products.filter((product) =>
+  // ✅ FETCH FUNCTION
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+
+      const res = await fetch("http://localhost:5000/api/products")
+      const data = await res.json()
+
+      if (data.success) {
+        setProducts(data.data)
+      }
+
+    } catch (error) {
+      console.error("Fetch error:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ✅ FIXED useEffect (ONLY refresh dependency)
+  useEffect(() => {
+    fetchProducts()
+  }, [refresh])
+
+  // DELETE
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this product?")) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        throw new Error(data.message)
+      }
+
+      deleteProduct(id)
+
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Delete failed"
+
+      alert(message)
+    }
+  }
+
+  // FILTER
+  const filteredProducts = products.filter((product: Product) =>
     product.name.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div className="w-full">
 
-      {/* SEARCH BAR */}
-
+      {/* SEARCH */}
       <div className="p-6 border-b bg-white">
-
         <div className="relative w-80">
 
           <Search
@@ -39,17 +105,21 @@ export default function ProductTable() {
           />
 
         </div>
-
       </div>
 
-      {/* TABLE */}
+      {/* LOADING */}
+      {loading && (
+        <div className="p-6 text-sm text-gray-500">
+          Loading products...
+        </div>
+      )}
 
+      {/* TABLE */}
       <div className="overflow-x-auto">
 
         <table className="w-full text-sm">
 
           <thead className="bg-gray-50 border-b">
-
             <tr>
               <th className="text-left px-6 py-4">Image</th>
               <th className="text-left px-6 py-4">Product Name</th>
@@ -58,87 +128,89 @@ export default function ProductTable() {
               <th className="text-left px-6 py-4">Stock</th>
               <th className="text-left px-6 py-4">Actions</th>
             </tr>
-
           </thead>
 
           <tbody>
 
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product: Product) => {
 
-              <tr
-                key={product.id}
-                className="border-b hover:bg-gray-50 transition"
-              >
+              const displayImage =
+                product.images?.[0] || product.image || "/placeholder.png"
 
-                {/* IMAGE */}
+              return (
+                <tr
+                  key={product.id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
 
-                <td className="px-6 py-4">
+                  <td className="px-6 py-4">
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border">
+                      <Image
+                        src={displayImage}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </td>
 
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden border">
+                  <td className="px-6 py-4 font-medium">
+                    {product.name}
+                  </td>
 
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
+                  <td className="px-6 py-4 text-gray-600">
+                    {product.category || "—"}
+                  </td>
 
-                  </div>
+                  <td className="px-6 py-4 font-medium">
+                    ₹{product.price}
+                  </td>
 
-                </td>
+                  <td className="px-6 py-4">
+                    <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">
+                      {product.stock ?? 0} in stock
+                    </span>
+                  </td>
 
-                {/* NAME */}
+                  <td className="px-6 py-4 flex gap-3">
 
-                <td className="px-6 py-4 font-medium">
-                  {product.name}
-                </td>
+                    <button
+                      onClick={() => setEditProduct(product)}
+                      className="text-blue-500 hover:text-blue-700 font-medium"
+                    >
+                      Edit
+                    </button>
 
-                {/* CATEGORY */}
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="text-red-500 hover:text-red-700 font-medium"
+                    >
+                      Delete
+                    </button>
 
-                <td className="px-6 py-4 text-gray-600">
-                  {product.category}
-                </td>
+                  </td>
 
-                {/* PRICE */}
-
-                <td className="px-6 py-4 font-medium">
-                  ₹{product.price}
-                </td>
-
-                {/* STOCK */}
-
-                <td className="px-6 py-4">
-
-                  <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">
-
-                    {product.stock} in stock
-
-                  </span>
-
-                </td>
-
-                {/* ACTION */}
-
-                <td className="px-6 py-4">
-
-                  <button
-                    onClick={() => deleteProduct(product.id)}
-                    className="text-red-500 hover:text-red-700 font-medium"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
-              </tr>
-
-            ))}
+                </tr>
+              )
+            })}
 
           </tbody>
 
         </table>
 
       </div>
+
+      {/* EDIT MODAL */}
+      {editProduct && (
+        <EditProductModal
+          product={editProduct}
+          close={() => setEditProduct(null)}
+          onSuccess={() => {
+            setEditProduct(null)
+            fetchProducts() // ✅ no reload
+          }}
+        />
+      )}
 
     </div>
   )

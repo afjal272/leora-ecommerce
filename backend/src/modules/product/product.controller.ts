@@ -1,27 +1,24 @@
 import { Request, Response } from "express"
 import { prisma } from "@/lib/prisma"
 import slugify from "slugify"
-
+import crypto from "crypto"
 
 // ✅ GET ALL PRODUCTS
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const { search } = req.query
+    const search = (req.query.search as string) || ""
 
     const products = await prisma.product.findMany({
       where: {
         name: {
-          contains: (search as string) || "",
+          contains: search,
           mode: "insensitive",
         },
       },
       orderBy: { createdAt: "desc" },
     })
 
-    res.json({
-      success: true,
-      data: products,
-    })
+    res.json({ success: true, data: products })
   } catch (error: any) {
     res.status(500).json({
       success: false,
@@ -30,8 +27,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
   }
 }
 
-
-// ✅ GET SINGLE PRODUCT (id OR slug)
+// ✅ GET SINGLE PRODUCT
 export const getSingleProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -49,10 +45,7 @@ export const getSingleProduct = async (req: Request, res: Response) => {
       })
     }
 
-    res.json({
-      success: true,
-      data: product,
-    })
+    res.json({ success: true, data: product })
   } catch (error: any) {
     res.status(500).json({
       success: false,
@@ -61,11 +54,12 @@ export const getSingleProduct = async (req: Request, res: Response) => {
   }
 }
 
-
-// ✅ CREATE PRODUCT
+// ✅ CREATE PRODUCT (FINAL FIXED)
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, price, image, stock, description } = req.body
+    console.log("BODY 👉", req.body)
+
+    let { name, price, image, images, stock, description, category } = req.body
 
     if (!name || !price) {
       return res.status(400).json({
@@ -74,24 +68,47 @@ export const createProduct = async (req: Request, res: Response) => {
       })
     }
 
-    const slug = slugify(name, { lower: true, strict: true })
+    // ✅ UNIQUE SLUG FIX (MAIN ISSUE)
+    const baseSlug = slugify(name, { lower: true, strict: true })
+    const id = crypto.randomUUID()
+    const slug = `${baseSlug}-${id.slice(0, 6)}`
+
+    // ✅ IMAGE FIX
+    let finalImages: string[] = []
+
+    if (Array.isArray(images) && images.length > 0) {
+      finalImages = images
+    } else if (image) {
+      finalImages = [image]
+    }
+
+    if (finalImages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one image is required",
+      })
+    }
+
+    const mainImage = finalImages[0]
 
     const product = await prisma.product.create({
       data: {
+        id, // ✅ important
         name,
         slug,
         price: Number(price),
-        image,
-        stock: stock || 0,
-        description,
+        image: mainImage,
+        images: finalImages,
+        stock: Number(stock) || 0,
+        description: description || "",
+        category: category || "general",
       },
     })
 
-    res.status(201).json({
-      success: true,
-      data: product,
-    })
+    res.status(201).json({ success: true, data: product })
   } catch (error: any) {
+    console.error("CREATE ERROR 👉", error)
+
     res.status(500).json({
       success: false,
       message: error.message || "Failed to create product",
@@ -99,16 +116,27 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 }
 
-
 // ✅ UPDATE PRODUCT
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { name, price, image, stock, description } = req.body
+    let { name, price, image, images, stock, description, category } = req.body
 
-    const slug = name
+    const baseSlug = name
       ? slugify(name, { lower: true, strict: true })
       : undefined
+
+    const slug = baseSlug
+      ? `${baseSlug}-${Date.now().toString().slice(-4)}`
+      : undefined
+
+    let finalImages: string[] | undefined = undefined
+
+    if (Array.isArray(images) && images.length > 0) {
+      finalImages = images
+    } else if (image) {
+      finalImages = [image]
+    }
 
     const product = await prisma.product.update({
       where: { id },
@@ -116,24 +144,26 @@ export const updateProduct = async (req: Request, res: Response) => {
         ...(name && { name }),
         ...(slug && { slug }),
         ...(price && { price: Number(price) }),
-        ...(image && { image }),
-        ...(stock !== undefined && { stock }),
+        ...(finalImages && {
+          image: finalImages[0],
+          images: finalImages,
+        }),
+        ...(stock !== undefined && { stock: Number(stock) }),
         ...(description && { description }),
+        ...(category && { category }),
       },
     })
 
-    res.json({
-      success: true,
-      data: product,
-    })
+    res.json({ success: true, data: product })
   } catch (error: any) {
+    console.error("UPDATE ERROR 👉", error)
+
     res.status(500).json({
       success: false,
       message: error.message || "Failed to update product",
     })
   }
 }
-
 
 // ✅ DELETE PRODUCT
 export const deleteProduct = async (req: Request, res: Response) => {

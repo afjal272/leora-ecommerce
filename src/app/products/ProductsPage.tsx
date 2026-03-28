@@ -6,16 +6,16 @@ import ProductCard from "@/components/product/product-card"
 
 export interface Product {
   id: string
-  title: string
+  name: string
   price: number
   image: string
-  description: string
-  category: string
-  stock: number
+  images: string[]   // ✅ important
+  description?: string
+  category?: string
+  stock?: number
 }
 
 export default function ProductsPage() {
-
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -26,15 +26,27 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("all")
   const [sort, setSort] = useState<"default" | "low" | "high">("default")
 
-  // 🔥 FETCH FROM BACKEND
+  // ✅ FETCH
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/products")
         const data = await res.json()
-        setProducts(data.data || [])
+
+        const safeData: Product[] = (data.data || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          image: p.image,
+          images: p.images || [p.image], // ✅ FIX
+          description: p.description,
+          category: p.category || "uncategorized",
+          stock: p.stock || 0,
+        }))
+
+        setProducts(safeData)
       } catch (err) {
-        console.error(err)
+        console.error("Fetch error:", err)
       } finally {
         setLoading(false)
       }
@@ -48,7 +60,7 @@ export default function ProductsPage() {
   }, [urlSearch])
 
   const categories = useMemo(() => {
-    const unique = new Set(products.map((p) => p.category))
+    const unique = new Set(products.map((p) => p.category || "uncategorized"))
     return ["all", ...Array.from(unique)]
   }, [products])
 
@@ -58,7 +70,7 @@ export default function ProductsPage() {
     if (search.trim()) {
       const query = search.toLowerCase()
       result = result.filter((p) =>
-        p.title.toLowerCase().includes(query)
+        p.name.toLowerCase().includes(query)
       )
     }
 
@@ -88,13 +100,17 @@ export default function ProductsPage() {
         All Products ({filteredProducts.length})
       </h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-
-        {filteredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-
-      </div>
+      {filteredProducts.length === 0 ? (
+        <div className="text-center text-gray-500 py-20">
+          No products found
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
 
     </div>
   )

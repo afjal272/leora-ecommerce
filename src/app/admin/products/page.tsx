@@ -9,12 +9,19 @@ export default function AdminProductsPage() {
 
   const [open, setOpen] = useState(false)
 
+  // 🔥 ye important hai (refresh trigger)
+  const [refresh, setRefresh] = useState(false)
+
+  const handleSuccess = () => {
+    setOpen(false)
+    setRefresh(prev => !prev) // table reload trigger
+  }
+
   return (
 
     <div className="max-w-7xl mx-auto px-6 py-10">
 
       {/* Header */}
-
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
         <div>
@@ -38,17 +45,16 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Product Table */}
-
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-
-        <ProductTable />
-
+        <ProductTable refresh={refresh} />
       </div>
 
       {/* Modal */}
-
       {open && (
-        <AddProductModal close={() => setOpen(false)} />
+        <AddProductModal 
+          close={() => setOpen(false)} 
+          onSuccess={handleSuccess}
+        />
       )}
 
     </div>

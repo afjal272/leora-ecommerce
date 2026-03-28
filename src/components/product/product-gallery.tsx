@@ -10,25 +10,21 @@ interface Props {
 
 export default function ProductGallery({ images, name }: Props) {
 
-  const [activeImage, setActiveImage] = useState(images[0])
+  const [activeImage, setActiveImage] = useState(images[0] || "/placeholder.png") // ✅ FIX
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-6">
 
-      {/* MAIN IMAGE */}
-
       <div className="order-1 md:order-2 relative w-full md:w-[520px] h-[420px] md:h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
 
         <Image
-          src={activeImage}
-          alt={name}
+          src={activeImage || "/placeholder.png"} // ✅ FIX
+          alt={name || "product image"} // ✅ FIX
           fill
           className="object-cover"
         />
 
       </div>
-
-      {/* THUMBNAILS */}
 
       <div className="order-2 md:order-1 flex flex-row md:flex-col gap-3 overflow-x-auto md:overflow-visible">
 
@@ -41,8 +37,8 @@ export default function ProductGallery({ images, name }: Props) {
           >
 
             <Image
-              src={img}
-              alt={name}
+              src={img || "/placeholder.png"} // ✅ FIX
+              alt={name || "product image"} // ✅ FIX
               fill
               className="object-cover"
             />
