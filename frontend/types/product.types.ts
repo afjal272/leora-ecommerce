@@ -17,8 +17,8 @@ export interface Product {
   image?: string
   images?: string[]
 
-  category: string
-  stock: number
+  category?: string
+  stock?: number
 
   variants?: ProductVariant[]
 }

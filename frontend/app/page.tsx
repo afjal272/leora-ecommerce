@@ -17,11 +17,20 @@ export default function HomePage() {
   const products = useStore(useProductStore, (state) => state.products) ?? []
   const featured = products.slice(0, 12)
 
-  // ✅ ADD (backend connect)
+  // ❌ OLD (localhost - Vercel me fail hoga)
+  // fetch("http://localhost:5000/api/products")
+
+  // ✅ FIXED (env based - production safe)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/products")
+
+        // 🔥 NEW LINE (safe URL)
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+
+        // 🔥 MODIFIED LINE
+        const res = await fetch(`${BASE_URL}/products`)
+
         const data = await res.json()
 
         if (data.success) {
