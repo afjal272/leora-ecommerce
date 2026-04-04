@@ -1,18 +1,24 @@
 export interface ProductVariant {
-  color: string      // hex color like "#ff0000"
-  image: string      // image for this color
+  color: string        // hex like "#ff0000"
+  image: string        // image for this variant
 }
 
 export interface Product {
   id: string
   name: string
   slug: string
-  description: string
+
+  // optional kyunki har product me nahi hota
+  description?: string
+
   price: number
-  image: string
-  images: string[]
+
+  // flexible image system
+  image?: string
+  images?: string[]
+
   category: string
   stock: number
 
-  variants?: ProductVariant[]   // color variants preview
+  variants?: ProductVariant[]
 }
