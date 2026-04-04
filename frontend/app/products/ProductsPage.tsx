@@ -4,19 +4,32 @@ import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import ProductCard from "@/components/product/product-card"
 
+// ❌ OLD LOCAL TYPE (conflict create kar raha hai)
+// export interface Product { ... }
+
+// ✅ NEW: GLOBAL TYPE IMPORT (single source of truth)
+import { Product as GlobalProduct } from "@/types/product.types"
+
+// ❗ KEEP OLD TYPE (as requested, no delete)
 export interface Product {
   id: string
   name: string
   price: number
   image: string
-  images: string[]   // ✅ important
+  images: string[]
   description?: string
   category?: string
   stock?: number
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
+
+  // ❌ OLD
+  // const [products, setProducts] = useState<Product[]>([])
+
+  // ✅ NEW (global type use kar rahe hain)
+  const [products, setProducts] = useState<GlobalProduct[]>([])
+
   const [loading, setLoading] = useState(true)
 
   const searchParams = useSearchParams()
@@ -26,25 +39,33 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("all")
   const [sort, setSort] = useState<"default" | "low" | "high">("default")
 
-  // ✅ FETCH
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/products")
+
+       
+        // ✅ NEW (env based)
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+        const res = await fetch(`${BASE_URL}/products`)
+
         const data = await res.json()
 
-        const safeData: Product[] = (data.data || []).map((p: any) => ({
+
+        // ✅ NEW SAFE + GLOBAL TYPE
+        const safeData: GlobalProduct[] = (data.data || []).map((p: any) => ({
           id: p.id,
           name: p.name,
+          slug: p.slug || p.id, // 🔥 CRITICAL FIX
           price: p.price,
           image: p.image,
-          images: p.images || [p.image], // ✅ FIX
+          images: p.images || [p.image],
           description: p.description,
           category: p.category || "uncategorized",
           stock: p.stock || 0,
         }))
 
         setProducts(safeData)
+
       } catch (err) {
         console.error("Fetch error:", err)
       } finally {
@@ -65,7 +86,7 @@ export default function ProductsPage() {
   }, [products])
 
   const filteredProducts = useMemo(() => {
-    let result: Product[] = [...products]
+    let result: GlobalProduct[] = [...products]
 
     if (search.trim()) {
       const query = search.toLowerCase()
