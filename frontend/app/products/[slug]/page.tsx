@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cart.store"
 import ProductCard from "@/components/product/product-card"
 import ProductGallery from "@/components/product/product-gallery"
 
+// ❌ OLD LOCAL TYPE (conflict create karta hai)
 type Product = {
   id: string
   name: string
@@ -19,13 +20,22 @@ type Product = {
   stock?: number
 }
 
+// ✅ NEW GLOBAL TYPE (single source of truth)
+import { Product as GlobalProduct } from "@/types/product.types"
+
 export default function ProductDetailPage() {
 
   const params = useParams<{ slug: string }>()
   const slug = params.slug
 
-  const [product, setProduct] = useState<Product | null>(null)
-  const [related, setRelated] = useState<Product[]>([])
+  // ❌ OLD
+  // const [product, setProduct] = useState<Product | null>(null)
+  // const [related, setRelated] = useState<Product[]>([])
+
+  // ✅ NEW
+  const [product, setProduct] = useState<GlobalProduct | null>(null)
+  const [related, setRelated] = useState<GlobalProduct[]>([])
+
   const [loading, setLoading] = useState(true)
 
   const addToCart = useCartStore((state) => state.addToCart)
@@ -33,17 +43,34 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/api/products/${slug}`
-        )
+
+        // ❌ OLD (localhost only)
+        // const res = await fetch(`http://localhost:5000/api/products/${slug}`)
+
+        // ✅ NEW (env based)
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+        const res = await fetch(`${BASE_URL}/products/${slug}`)
 
         if (!res.ok) throw new Error("Fetch failed")
 
         const data = await res.json()
 
         if (data.success) {
-          setProduct(data.data)
-          setRelated(data.related || [])
+
+          // ✅ SAFE PRODUCT
+          const safeProduct: GlobalProduct = {
+            ...data.data,
+            slug: data.data.slug || data.data.id
+          }
+
+          // ✅ SAFE RELATED
+          const safeRelated: GlobalProduct[] = (data.related || []).map((p: any) => ({
+            ...p,
+            slug: p.slug || p.id
+          }))
+
+          setProduct(safeProduct)
+          setRelated(safeRelated)
         }
 
       } catch (err) {
@@ -78,7 +105,6 @@ export default function ProductDetailPage() {
 
         <div className="grid md:grid-cols-2 gap-10">
 
-          {/* IMAGE GALLERY */}
           <ProductGallery
             images={
               product.images?.length
@@ -88,7 +114,6 @@ export default function ProductDetailPage() {
             name={product.name}
           />
 
-          {/* DETAILS */}
           <div>
 
             <h1 className="text-2xl font-semibold">
@@ -99,11 +124,14 @@ export default function ProductDetailPage() {
               ₹{product.price}
             </p>
 
+            {/* ❌ unsafe */}
+            {/* {product.description} */}
+
+            {/* ✅ safe */}
             <p className="mt-4 text-gray-600">
-              {product.description}
+              {product.description || "No description"}
             </p>
 
-            {/* ADD TO CART */}
             <button
               disabled={outOfStock}
               onClick={() =>
@@ -130,7 +158,6 @@ export default function ProductDetailPage() {
 
         </div>
 
-        {/* RELATED PRODUCTS */}
         {related.length > 0 && (
           <div className="mt-16">
 
