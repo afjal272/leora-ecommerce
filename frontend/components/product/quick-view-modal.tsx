@@ -35,8 +35,18 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
   if (!open) return null
 
+  // ✅ FIXED HERE
   const handleAddToCart = () => {
-    addToCart(product.id)
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image:
+        product.image ||
+        product.images?.[0] ||
+        "/placeholder.png",
+    })
+
     openCart()
     onClose()
   }
@@ -45,16 +55,13 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
 
-      {/* overlay click close */}
       <div
         onClick={onClose}
         className="absolute inset-0"
       />
 
-      {/* modal */}
       <div className="relative bg-white rounded-xl max-w-5xl w-full mx-6 grid md:grid-cols-2 overflow-hidden shadow-2xl">
 
-        {/* close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-20 text-gray-500 hover:text-black"
@@ -62,18 +69,16 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
           <X size={22} />
         </button>
 
-        {/* IMAGE */}
         <div className="bg-gray-100">
 
           <img
-            src={product.image}
+            src={product.image || product.images?.[0] || "/placeholder.png"}
             alt={product.name}
             className="w-full h-full object-cover"
           />
 
         </div>
 
-        {/* CONTENT */}
         <div className="p-8 flex flex-col justify-center">
 
           <h2 className="text-2xl font-semibold mb-3">
@@ -85,10 +90,9 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
           </p>
 
           <p className="text-gray-600 text-sm mb-6">
-            {product.description}
+            {product.description || "No description"}
           </p>
 
-          {/* COLOR VARIANTS */}
           {product.variants && product.variants.length > 0 && (
 
             <div className="mb-6">
@@ -115,7 +119,6 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
           )}
 
-          {/* ADD TO CART */}
           <button
             onClick={handleAddToCart}
             className="bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition"
