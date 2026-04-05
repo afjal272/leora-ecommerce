@@ -23,8 +23,8 @@ export default function AddProductModal({ close, onSuccess }: Props) {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  // 🔥 NEW: API URL (no hardcoding future me)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  // 🔥 FIX: remove /api duplication
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -37,7 +37,7 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     }))
   }
 
-  // 🔥 FINAL COMPRESSION (fixed scaling bug)
+  // 🔥 IMAGE COMPRESS
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
 
@@ -54,7 +54,7 @@ export default function AddProductModal({ close, onSuccess }: Props) {
           const ctx = canvas.getContext("2d")
 
           const MAX_WIDTH = 800
-          const scale = Math.min(1, MAX_WIDTH / img.width) // ✅ FIX
+          const scale = Math.min(1, MAX_WIDTH / img.width)
 
           canvas.width = img.width * scale
           canvas.height = img.height * scale
@@ -71,70 +71,90 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     })
   }
 
+  // ✅ ADD THIS (missing function)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    const compressedImages: string[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const compressed = await compressImage(files[i])
+      compressedImages.push(compressed)
+    }
+
+    setImages((prev) => [...prev, ...compressedImages])
+  }
+
+  // ✅ ADD THIS (remove button fix)
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleAdd = async () => {
 
-  if (!localStorage.getItem("token")) {
-    alert("Login required")
-    return
-  }
-
-  if (!form.name || !form.price || images.length === 0) {
-    alert("Name, price and at least one image required")
-    return
-  }
-
-  try {
-    setLoading(true)
-
-    const res = await fetch(`${API_URL}/api/products`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // 🔥 ADD
-      },
-      body: JSON.stringify({
-        name: form.name,
-        price: Number(form.price),
-        description: form.description,
-        category: form.category,
-        stock: Number(form.stock) || 0,
-        images: images,
-      }),
-    })
-
-    if (!res.ok) {
-      throw new Error("Unauthorized or server error")
+    if (!localStorage.getItem("token")) {
+      alert("Login required")
+      return
     }
 
-    const data = await res.json()
-
-    if (!data || !data.success || !data.data) {
-      throw new Error(data?.message || "Invalid server response")
+    if (!form.name || !form.price || images.length === 0) {
+      alert("Name, price and at least one image required")
+      return
     }
 
-    const product = data.data
+    try {
+      setLoading(true)
 
-    addProduct({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      description: product.description,
-      category: product.category,
-      stock: product.stock,
-      image: product.image,
-      images: product.images,
-    })
+      const res = await fetch(`${API_URL}/products`, { // ✅ FIXED
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          name: form.name,
+          price: Number(form.price),
+          description: form.description,
+          category: form.category,
+          stock: Number(form.stock) || 0,
+          images: images,
+        }),
+      })
 
-    onSuccess?.()
-    close()
+      if (!res.ok) {
+        throw new Error("Unauthorized or server error")
+      }
 
-  } catch (error: any) {
-    alert(error.message || "Something went wrong")
-  } finally {
-    setLoading(false)
+      const data = await res.json()
+
+      if (!data || !data.success || !data.data) {
+        throw new Error(data?.message || "Invalid server response")
+      }
+
+      const product = data.data
+
+      addProduct({
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        category: product.category,
+        stock: product.stock,
+        image: product.image,
+        images: product.images,
+      })
+
+      onSuccess?.()
+      close()
+
+    } catch (error: any) {
+      alert(error.message || "Something went wrong")
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   return (
 
