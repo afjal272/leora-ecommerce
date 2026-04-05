@@ -43,8 +43,15 @@ export default function RegisterPage() {
 
     if (!validate()) return
 
-    // Fake register (auto login)
-    login(form.email)
+    // ✅ FIXED (fake login properly)
+    login(
+      {
+        id: "temp-id",
+        name: form.name || form.email,
+        email: form.email,
+      },
+      "dummy-token"
+    )
 
     router.push("/")
   }

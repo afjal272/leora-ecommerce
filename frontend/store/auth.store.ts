@@ -17,6 +17,9 @@ interface AuthState {
 
   updateName: (name: string) => void
   name: string
+
+  // ✅ ADD THIS
+  login: (user: User, token: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -31,6 +34,14 @@ export const useAuthStore = create<AuthState>()(
           user: data.user,
           token: data.token,
           name: data.user.name,
+        }),
+
+      // ✅ ADD THIS (wrapper over setAuth)
+      login: (user, token) =>
+        set({
+          user,
+          token,
+          name: user.name,
         }),
 
       logout: () =>
