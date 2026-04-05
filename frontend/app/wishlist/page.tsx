@@ -48,9 +48,9 @@ export default function WishlistPage() {
             className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition"
           >
 
-            <Link href={`/products/${product.slug}`}>
+            <Link href={`/products/${product.slug || product.id}`}>
               <img
-                src={product.image}
+                src={product.image || product.images?.[0] || "/placeholder.png"}
                 alt={product.name}
                 className="w-full h-64 object-cover"
               />
@@ -69,7 +69,21 @@ export default function WishlistPage() {
               <div className="flex gap-3 mt-4">
 
                 <button
-                  onClick={() => addToCart(product.id)}
+                  // ❌ OLD
+                  // onClick={() => addToCart(product.id)}
+
+                  // ✅ FIXED
+                  onClick={() =>
+                    addToCart({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image:
+                        product.image ||
+                        product.images?.[0] ||
+                        "/placeholder.png",
+                    })
+                  }
                   className="flex-1 border border-black py-2 rounded-full hover:bg-black hover:text-white transition"
                 >
                   Add to Cart
