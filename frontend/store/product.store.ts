@@ -20,6 +20,9 @@ type ProductStore = {
   addProduct: (product: Product) => void
 
   deleteProduct: (id: string) => void
+
+  // ✅ ADD THIS
+  updateProduct: (product: Product) => void
 }
 
 export const useProductStore = create<ProductStore>((set) => ({
@@ -28,18 +31,26 @@ export const useProductStore = create<ProductStore>((set) => ({
   // ✅ backend se data set (safe)
   setProducts: (products) =>
     set(() => ({
-      products: products || [], // 🔥 safety
+      products: products || [],
     })),
 
   // ✅ UI fast update (safe against undefined)
   addProduct: (product) =>
     set((state) => ({
-      products: [product, ...(state.products || [])], // 🔥 fix
+      products: [product, ...(state.products || [])],
     })),
 
   // ✅ local delete (safe)
   deleteProduct: (id) =>
     set((state) => ({
       products: (state.products || []).filter((p) => p.id !== id),
+    })),
+
+  // ✅ ADD THIS (MAIN FIX)
+  updateProduct: (updatedProduct) =>
+    set((state) => ({
+      products: (state.products || []).map((p) =>
+        p.id === updatedProduct.id ? updatedProduct : p
+      ),
     })),
 }))
