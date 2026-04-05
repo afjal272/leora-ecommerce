@@ -24,10 +24,9 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  // 🔥 NEW: API URL (no hardcoding future me)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  // 🔥 FIX: include /api here once
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
-  // ✅ PREFILL (safe)
   useEffect(() => {
     if (product) {
       setForm({
@@ -59,7 +58,6 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
     }))
   }
 
-  // ✅ IMAGE COMPRESS (fixed scaling)
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader()
@@ -88,74 +86,94 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
       reader.readAsDataURL(file)
     })
   }
-  
-const handleUpdate = async () => {
 
-  if (!localStorage.getItem("token")) {
-    alert("Login required")
-    return
+  // ✅ ADD THIS (missing upload logic)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    const compressedImages: string[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const compressed = await compressImage(files[i])
+      compressedImages.push(compressed)
+    }
+
+    setImages((prev) => [...prev, ...compressedImages])
   }
 
-  if (!form.name || !form.price || images.length === 0) {
-    alert("Name, price and at least one image required")
-    return
+  // ✅ ADD THIS (remove button fix)
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  try {
-    setLoading(true)
+  const handleUpdate = async () => {
 
-    const res = await fetch(
-      `${API_URL}/api/products/${product.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // 🔥 ADD
-        },
-        body: JSON.stringify({
-          name: form.name,
-          price: Number(form.price),
-          description: form.description,
-          category: form.category,
-          stock: Number(form.stock) || 0,
-          images: images,
-        }),
+    if (!localStorage.getItem("token")) {
+      alert("Login required")
+      return
+    }
+
+    if (!form.name || !form.price || images.length === 0) {
+      alert("Name, price and at least one image required")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const res = await fetch(
+        `${API_URL}/products/${product.id}`, // ✅ FIXED
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            name: form.name,
+            price: Number(form.price),
+            description: form.description,
+            category: form.category,
+            stock: Number(form.stock) || 0,
+            images: images,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Unauthorized or server error")
       }
-    )
 
-    if (!res.ok) {
-      throw new Error("Unauthorized or server error")
+      const data = await res.json()
+
+      if (!data || !data.success || !data.data) {
+        throw new Error(data?.message || "Invalid response")
+      }
+
+      const updated = data.data
+
+      updateProduct({
+        id: updated.id,
+        slug: updated.slug,
+        name: updated.name,
+        price: updated.price,
+        description: updated.description,
+        category: updated.category,
+        stock: updated.stock,
+        image: updated.image,
+        images: updated.images,
+      })
+
+      onSuccess?.()
+      close()
+
+    } catch (error: any) {
+      alert(error.message || "Update failed")
+    } finally {
+      setLoading(false)
     }
-
-    const data = await res.json()
-
-    if (!data || !data.success || !data.data) {
-      throw new Error(data?.message || "Invalid response")
-    }
-
-    const updated = data.data
-
-    updateProduct({
-      id: updated.id,
-      slug: updated.slug,
-      name: updated.name,
-      price: updated.price,
-      description: updated.description,
-      category: updated.category,
-      stock: updated.stock,
-      image: updated.image,
-      images: updated.images,
-    })
-
-    onSuccess?.()
-    close()
-
-  } catch (error: any) {
-    alert(error.message || "Update failed")
-  } finally {
-    setLoading(false)
   }
-}
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
