@@ -1,9 +1,10 @@
 import prisma from "../../lib/prisma"
+import { OrderStatus } from "@prisma/client"
 
 type CreateOrderData = {
   userId: string
   total: number
-  status: string
+  status: OrderStatus // ✅ FIXED
   items: {
     create: {
       productId: string
