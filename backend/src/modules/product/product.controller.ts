@@ -6,9 +6,9 @@ import crypto from "crypto"
 // ✅ GET ALL PRODUCTS
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const search = Array.isArray(req.query.search)
-      ? req.query.search[0]
-      : (req.query.search as string) || ""
+    const search = typeof req.query.search === "string"
+     ? req.query.search
+     : ""
 
     const products = await prisma.product.findMany({
       where: {
