@@ -6,7 +6,9 @@ import crypto from "crypto"
 // ✅ GET ALL PRODUCTS
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const search = (req.query.search as string) || ""
+    const search = Array.isArray(req.query.search)
+      ? req.query.search[0]
+      : (req.query.search as string) || ""
 
     const products = await prisma.product.findMany({
       where: {
@@ -30,7 +32,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
 // ✅ GET SINGLE PRODUCT
 export const getSingleProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params
+    const id = req.params.id as string // ✅ FIXED
 
     const product = await prisma.product.findFirst({
       where: {
@@ -61,7 +63,6 @@ export const createProduct = async (req: Request, res: Response) => {
 
     const { name, price, image, images, stock, description, category } = req.body
 
-    // 🔴 Validation
     if (!name || !price) {
       return res.status(400).json({
         success: false,
@@ -69,12 +70,10 @@ export const createProduct = async (req: Request, res: Response) => {
       })
     }
 
-    // 🔴 SLUG (unique + safe)
     const baseSlug = slugify(name, { lower: true, strict: true })
     const id = crypto.randomUUID()
     const slug = `${baseSlug}-${id.slice(0, 6)}`
 
-    // 🔴 IMAGE HANDLING
     let finalImages: string[] = []
 
     if (Array.isArray(images) && images.length > 0) {
@@ -122,7 +121,7 @@ export const createProduct = async (req: Request, res: Response) => {
 // ✅ UPDATE PRODUCT
 export const updateProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params
+    const id = req.params.id as string // ✅ FIXED
     const { name, price, image, images, stock, description, category } = req.body
 
     let finalImages: string[] | undefined
@@ -172,7 +171,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 // ✅ DELETE PRODUCT
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params
+    const id = req.params.id as string // ✅ FIXED
 
     await prisma.product.delete({
       where: { id },
