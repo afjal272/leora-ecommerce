@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react" // ✅ ADD
+import { useEffect } from "react"
 
 import HeroSlider from "@/components/home/HeroSlider"
 import Features from "@/components/home/Features"
@@ -12,30 +12,20 @@ import { useProductStore } from "../store/product.store"
 import { useStore } from "@/hooks/useStore"
 import ProductCard from "@/components/product/product-card"
 
+// ✅ NEW IMPORT
+import { getProducts } from "@/lib/api"
+
 export default function HomePage() {
 
   const products = useStore(useProductStore, (state) => state.products) ?? []
   const featured = products.slice(0, 12)
 
-  // ❌ OLD (localhost - Vercel me fail hoga)
-  // fetch("http://localhost:5000/api/products")
-
-  // ✅ FIXED (env based - production safe)
+  // ✅ CLEAN API CALL
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-
-        // 🔥 NEW LINE (safe URL)
-        const BASE_URL = process.env.NEXT_PUBLIC_API_URL
-
-        // 🔥 MODIFIED LINE
-        const res = await fetch(`${BASE_URL}/products`)
-
-        const data = await res.json()
-
-        if (data.success) {
-          useProductStore.getState().setProducts(data.data)
-        }
+        const data = await getProducts()
+        useProductStore.getState().setProducts(data)
       } catch (err) {
         console.error("Home fetch error:", err)
       }
