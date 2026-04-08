@@ -26,7 +26,7 @@ export default function OTPContent() {
 
     hasSent.current = true
 
-    fetch("http://localhost:5000/api/auth/send-otp", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -80,7 +80,7 @@ export default function OTPContent() {
     try {
       setLoading(true)
 
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +138,7 @@ export default function OTPContent() {
     try {
       setTimeLeft(30)
 
-      await fetch("http://localhost:5000/api/auth/send-otp", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
