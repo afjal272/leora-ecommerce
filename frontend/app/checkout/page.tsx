@@ -113,7 +113,7 @@ export default function CheckoutPage() {
       }
 
       // 🔥 API CALL
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           userId: user.id,
           items: checkoutItems.map((item) => ({
-            id: item.id,
+            productId: item.id,
             quantity: item.quantity,
           })),
           total: getTotal(),
