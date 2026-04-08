@@ -101,7 +101,7 @@ export default function Navbar() {
     <>
       {/* Announcement */}
       <div className="bg-black text-white text-base text-center py-4 font-semibold tracking-wide">
-        Bulk Orders Available — Contact for special pricing
+        Bulk Orders Available — Contact us for special pricing
       </div>
 
       <header className="sticky top-0 z-50 bg-white">
