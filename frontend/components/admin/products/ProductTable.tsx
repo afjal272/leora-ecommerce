@@ -29,17 +29,18 @@ export default function ProductTable({ refresh }: Props) {
   const [loading, setLoading] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
 
-  // 🔥 NEW: API URL fix
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  // 🔥 FIXED (no localhost fallback)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-  // ✅ FETCH FUNCTION (IMPROVED)
+  // ✅ FETCH FUNCTION
   const fetchProducts = async () => {
     try {
       setLoading(true)
 
+      if (!API_URL) return
+
       const res = await fetch(`${API_URL}/api/products`)
 
-      // 🔥 FIX
       if (!res.ok) {
         throw new Error("Failed to fetch products")
       }
@@ -62,42 +63,49 @@ export default function ProductTable({ refresh }: Props) {
   }, [refresh])
 
 
-  // ✅ DELETE (IMPROVED)
+  // ✅ DELETE (FIXED)
   const handleDelete = async (id: string) => {
 
-  if (!localStorage.getItem("token")) {
-    alert("Login required")
-    return
-  }
+    const token = localStorage.getItem("token")
 
-  if (!confirm("Delete this product?")) return
-
-  try {
-    const res = await fetch(`${API_URL}/api/products/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // 🔥 ADD
-      },
-    })
-
-    if (!res.ok) throw new Error("Unauthorized or delete failed")
-
-    const data = await res.json()
-
-    if (!data.success) {
-      throw new Error(data.message)
+    if (!token) {
+      alert("Login required")
+      return
     }
 
-    deleteProduct(id)
+    if (!confirm("Delete this product?")) return
 
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Delete failed"
+    if (!API_URL) {
+      alert("API not configured")
+      return
+    }
 
-    alert(message)
+    try {
+      const res = await fetch(`${API_URL}/api/products/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) throw new Error("Unauthorized or delete failed")
+
+      const data = await res.json()
+
+      if (!data.success) {
+        throw new Error(data.message)
+      }
+
+      deleteProduct(id)
+
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Delete failed"
+
+      alert(message)
+    }
   }
-}
-  // 🔥 SAFE FILTER
+
   const filteredProducts = (products || []).filter((product: Product) =>
     product.name.toLowerCase().includes(search.toLowerCase())
   )
@@ -105,7 +113,6 @@ export default function ProductTable({ refresh }: Props) {
   return (
     <div className="w-full">
 
-      {/* SEARCH */}
       <div className="p-6 border-b bg-white">
         <div className="relative w-80">
 
@@ -126,21 +133,18 @@ export default function ProductTable({ refresh }: Props) {
         </div>
       </div>
 
-      {/* LOADING */}
       {loading && (
         <div className="p-6 text-sm text-gray-500">
           Loading products...
         </div>
       )}
 
-      {/* 🔥 EMPTY STATE */}
       {!loading && filteredProducts.length === 0 && (
         <div className="p-6 text-center text-gray-500">
           No products found
         </div>
       )}
 
-      {/* TABLE */}
       <div className="overflow-x-auto">
 
         <table className="w-full text-sm">
@@ -226,7 +230,6 @@ export default function ProductTable({ refresh }: Props) {
 
       </div>
 
-      {/* EDIT MODAL */}
       {editProduct && (
         <EditProductModal
           product={editProduct}
