@@ -28,11 +28,6 @@ export default function ProductDetailPage() {
   const params = useParams<{ slug: string }>()
   const slug = params.slug
 
-  // ❌ OLD
-  // const [product, setProduct] = useState<Product | null>(null)
-  // const [related, setRelated] = useState<Product[]>([])
-
-  // ✅ NEW
   const [product, setProduct] = useState<GlobalProduct | null>(null)
   const [related, setRelated] = useState<GlobalProduct[]>([])
 
@@ -44,12 +39,10 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
 
-        // ❌ OLD (localhost only)
-        // const res = await fetch(`http://localhost:5000/api/products/${slug}`)
-
-        // ✅ NEW (env based)
-        const BASE_URL = process.env.NEXT_PUBLIC_API_URL
-        const res = await fetch(`${BASE_URL}/products/${slug}`)
+        // ✅ FIXED (correct backend URL)
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/products/${slug}`
+        )
 
         if (!res.ok) throw new Error("Fetch failed")
 
@@ -124,10 +117,6 @@ export default function ProductDetailPage() {
               ₹{product.price}
             </p>
 
-            {/* ❌ unsafe */}
-            {/* {product.description} */}
-
-            {/* ✅ safe */}
             <p className="mt-4 text-gray-600">
               {product.description || "No description"}
             </p>
