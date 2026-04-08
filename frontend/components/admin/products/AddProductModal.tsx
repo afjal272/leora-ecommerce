@@ -23,8 +23,8 @@ export default function AddProductModal({ close, onSuccess }: Props) {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  // 🔥 FIX: remove /api duplication
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  // 🔥 ENV FIX (safe, no crash)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -71,7 +71,6 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     })
   }
 
-  // ✅ ADD THIS (missing function)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
@@ -86,15 +85,21 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     setImages((prev) => [...prev, ...compressedImages])
   }
 
-  // ✅ ADD THIS (remove button fix)
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleAdd = async () => {
 
-    if (!localStorage.getItem("token")) {
+    const token = localStorage.getItem("token")
+
+    if (!token) {
       alert("Login required")
+      return
+    }
+
+    if (!API_URL) {
+      alert("API not configured")
       return
     }
 
@@ -106,11 +111,11 @@ export default function AddProductModal({ close, onSuccess }: Props) {
     try {
       setLoading(true)
 
-      const res = await fetch(`${API_URL}/products`, { // ✅ FIXED
+      const res = await fetch(`${API_URL}/api/products`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: form.name,
