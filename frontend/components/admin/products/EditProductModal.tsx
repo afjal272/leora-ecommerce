@@ -24,8 +24,8 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  // 🔥 FIX: include /api here once
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  // 🔥 FIXED (no localhost fallback)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     if (product) {
@@ -87,7 +87,6 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
     })
   }
 
-  // ✅ ADD THIS (missing upload logic)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
@@ -102,15 +101,21 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
     setImages((prev) => [...prev, ...compressedImages])
   }
 
-  // ✅ ADD THIS (remove button fix)
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleUpdate = async () => {
 
-    if (!localStorage.getItem("token")) {
+    const token = localStorage.getItem("token")
+
+    if (!token) {
       alert("Login required")
+      return
+    }
+
+    if (!API_URL) {
+      alert("API not configured")
       return
     }
 
@@ -123,12 +128,12 @@ export default function EditProductModal({ product, close, onSuccess }: Props) {
       setLoading(true)
 
       const res = await fetch(
-        `${API_URL}/products/${product.id}`, // ✅ FIXED
+        `${API_URL}/api/products/${product.id}`, // ✅ FIXED (/api added)
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`, // ✅ FIXED
           },
           body: JSON.stringify({
             name: form.name,
