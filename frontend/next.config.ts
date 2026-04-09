@@ -9,7 +9,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "via.placeholder.com", // 🔥 THIS WAS MISSING
+        hostname: "via.placeholder.com",
+      },
+      {
+        protocol: "https",
+        hostname: "leora-ecommerce.onrender.com", // ✅ THIS WAS MISSING
       },
     ],
   },
