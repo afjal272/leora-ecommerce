@@ -3,7 +3,7 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
-import { getOtp, deleteOtp } from "./otp.store"
+import { getOtp, deleteOtp, setOtp } from "./otp.store" // ✅ ADDED setOtp
 
 type RegisterInput = z.infer<typeof registerSchema>
 type LoginInput = z.infer<typeof loginSchema>
@@ -29,7 +29,7 @@ export const registerUser = async (data: RegisterInput) => {
   return safeUser
 }
 
-// ✅ LOGIN (FINAL STABLE)
+// ✅ LOGIN (UPDATED WITH ADMIN OTP FLOW)
 export const loginUser = async (data: any) => {
   try {
     console.log("LOGIN INPUT:", data)
@@ -42,7 +42,7 @@ export const loginUser = async (data: any) => {
         : null
 
     // =======================
-    // 🔐 OTP LOGIN
+    // 🔐 OTP LOGIN (USER)
     // =======================
     if (mobile && typeof data.otp === "string" && data.otp.length === 6) {
       const cleanMobile = normalizeMobile(mobile)
@@ -97,7 +97,6 @@ export const loginUser = async (data: any) => {
         { expiresIn: "7d" }
       )
 
-      // 🔥 FORCE SAFE RETURN (NO SHAPE CONFUSION)
       const safeUser = {
         id: user.id,
         name: user.name,
@@ -124,6 +123,42 @@ export const loginUser = async (data: any) => {
     const isMatch = await bcrypt.compare(parsed.password, user.password)
     if (!isMatch) throw new Error("Invalid credentials")
 
+    // =======================
+    // 🔥 ADMIN OTP FLOW
+    // =======================
+    if (user.role === "ADMIN") {
+
+      // 🔥 STEP 1: if OTP NOT PROVIDED → send OTP
+      if (!data.otp) {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+        setOtp(user.email, otp)
+
+        console.log("🔥 ADMIN OTP:", otp, "Email:", user.email)
+
+        return { requireOTP: true }
+      }
+
+      // 🔥 STEP 2: verify OTP
+      const record = getOtp(user.email)
+
+      if (!record) throw new Error("OTP not found")
+
+      if (Date.now() > record.expiresAt) {
+        deleteOtp(user.email)
+        throw new Error("OTP expired")
+      }
+
+      if (String(record.otp) !== String(data.otp)) {
+        throw new Error("Invalid OTP")
+      }
+
+      deleteOtp(user.email)
+    }
+
+    // =======================
+    // 🔐 FINAL TOKEN
+    // =======================
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT_SECRET missing")
     }
@@ -143,8 +178,6 @@ export const loginUser = async (data: any) => {
 
   } catch (error: any) {
     console.error("LOGIN SERVICE ERROR:", error)
-
-    // 🔥 NEVER RETURN UNDEFINED
     throw new Error(error.message || "Login failed")
   }
 }
