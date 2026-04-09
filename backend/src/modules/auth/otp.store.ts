@@ -1,37 +1,73 @@
 type OTPRecord = {
   otp: string
   expiresAt: number
+  type: "email" | "mobile"
 }
 
-// 🔥 GLOBAL FIX (IMPORTANT)
+// 🔥 GLOBAL STORE
 const globalAny = global as any
 
 if (!globalAny.otpStore) {
   globalAny.otpStore = new Map<string, OTPRecord>()
 }
 
-const otpStore = globalAny.otpStore
+const otpStore: Map<string, OTPRecord> = globalAny.otpStore
 
-export const setOtp = (mobile: string, otp: string) => {
-  otpStore.set(mobile, {
+// 🔥 KEY BUILDER (BEST PRACTICE)
+const buildKey = (value: string, type: "email" | "mobile") => {
+  return `${type}:${value}`
+}
+
+// ✅ SET OTP
+export const setOtp = (
+  value: string,
+  otp: string,
+  type: "email" | "mobile"
+) => {
+  const key = buildKey(value, type)
+
+  otpStore.set(key, {
     otp,
     expiresAt: Date.now() + 5 * 60 * 1000,
+    type,
   })
 }
 
-export const getOtp = (mobile: string) => {
-  const record = otpStore.get(mobile)
+// ✅ GET OTP
+export const getOtp = (
+  value: string,
+  type: "email" | "mobile"
+) => {
+  const key = buildKey(value, type)
+
+  const record = otpStore.get(key)
 
   if (!record) return null
 
   if (Date.now() > record.expiresAt) {
-    otpStore.delete(mobile)
+    otpStore.delete(key)
     return null
   }
 
   return record
 }
 
-export const deleteOtp = (mobile: string) => {
-  otpStore.delete(mobile)
+// ✅ DELETE OTP
+export const deleteOtp = (
+  value: string,
+  type: "email" | "mobile"
+) => {
+  const key = buildKey(value, type)
+  otpStore.delete(key)
 }
+
+// 🔥 AUTO CLEAN (every 1 min)
+setInterval(() => {
+  const now = Date.now()
+
+  for (const [key, record] of otpStore.entries()) {
+    if (now > record.expiresAt) {
+      otpStore.delete(key)
+    }
+  }
+}, 60 * 1000)
