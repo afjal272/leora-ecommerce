@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ SEND OTP
+// ✅ SEND OTP (PHONE - existing flow)
 export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { mobile, phone } = req.body
@@ -63,13 +63,53 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ LOGIN (CLEAN + SINGLE FLOW)
+// 🔥 NEW: SEND OTP FOR ADMIN (EMAIL)
+export const sendAdminOtp = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email required",
+      })
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+    // reuse same store (simple approach)
+    setOtp(email, otp)
+
+    // 🔥 TEMP: console log (later email service lagayenge)
+    console.log("🔥 ADMIN OTP:", otp, "Email:", email)
+
+    return res.json({
+      success: true,
+      message: "Admin OTP sent",
+    })
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    })
+  }
+}
+
+// ✅ LOGIN (UPDATED FOR ADMIN OTP FLOW)
 export const login = async (req: Request, res: Response) => {
   try {
-    // 🔥 let service handle OTP vs email logic
     const result = await loginUser(req.body)
 
-    // 🔥 minimal safety (optional but clean)
+    // 🔥 CASE 1: ADMIN → OTP REQUIRED
+    if (result?.requireOTP) {
+      return res.status(200).json({
+        success: true,
+        requireOTP: true,
+        message: "OTP sent to email",
+      })
+    }
+
+    // 🔥 CASE 2: NORMAL LOGIN SUCCESS
     if (!result?.user || !result?.token) {
       console.error("❌ Invalid login result:", result)
 
@@ -85,6 +125,7 @@ export const login = async (req: Request, res: Response) => {
       success: true,
       data: result,
     })
+
   } catch (err: any) {
     console.error("Login Error:", err)
 
