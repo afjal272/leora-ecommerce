@@ -29,10 +29,8 @@ export default function ProductTable({ refresh }: Props) {
   const [loading, setLoading] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
 
-  // 🔥 FIXED (no localhost fallback)
   const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-  // ✅ FETCH FUNCTION
   const fetchProducts = async () => {
     try {
       setLoading(true)
@@ -62,8 +60,6 @@ export default function ProductTable({ refresh }: Props) {
     fetchProducts()
   }, [refresh])
 
-
-  // ✅ DELETE (FIXED)
   const handleDelete = async (id: string) => {
 
     const token = localStorage.getItem("token")
@@ -164,8 +160,22 @@ export default function ProductTable({ refresh }: Props) {
 
             {filteredProducts.map((product: Product) => {
 
+              // ❌ OLD (kept)
+              // const displayImage =
+              //   product.images?.[0] || product.image || "/placeholder.png"
+
+              // ✅ NEW FIX
+              const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL
+
+              const rawImage =
+                product.images?.[0] || product.image
+
               const displayImage =
-                product.images?.[0] || product.image || "/placeholder.png"
+                rawImage
+                  ? rawImage.startsWith("http")
+                    ? rawImage
+                    : `${IMAGE_BASE}/${rawImage}`
+                  : "/placeholder.png"
 
               return (
                 <tr
