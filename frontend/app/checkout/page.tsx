@@ -24,8 +24,8 @@ type AddressForm = {
 export default function CheckoutPage() {
 
   const { items, getTotal, clearCart } = useCartStore()
-  const { products } = useProductStore() // ⭐ no reduceStock now
-  const { user } = useAuthStore()
+  const { products } = useProductStore()
+  const { user, token } = useAuthStore() // ✅ FIX: token added
   const { addresses, addAddress } = useAddressStore()
 
   const router = useRouter()
@@ -87,21 +87,35 @@ export default function CheckoutPage() {
     }))
   }
 
-   if (!user?.id) {
-  alert("User not logged in")
-  return
-}
+  // ❌ OLD (kept, but not used)
+  // if (!user?.id) {
+  //   alert("User not logged in")
+  //   return
+  // }
 
-  // 🔥 FINAL ORDER FUNCTION (BACKEND INTEGRATED)
   const handlePlaceOrder = async () => {
     try {
+
+      // ✅ FIX: moved inside function
+      if (!user?.id) {
+        alert("User not logged in")
+        return
+      }
+
       setLoading(true)
 
       let selectedAddress = addresses.find(
         (addr) => addr.id === selectedAddressId
       )
 
-      if (!selectedAddress && !form.fullName) return
+      // ❌ OLD (kept)
+      // if (!selectedAddress && !form.fullName) return
+
+      // ✅ FIX: proper validation
+      if (!selectedAddress && !form.fullName) {
+        alert("Please fill address")
+        return
+      }
 
       if (!selectedAddress) {
         selectedAddress = {
@@ -112,11 +126,11 @@ export default function CheckoutPage() {
         addAddress(selectedAddress)
       }
 
-      // 🔥 API CALL
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ FIX
         },
         body: JSON.stringify({
           userId: user.id,
@@ -128,6 +142,11 @@ export default function CheckoutPage() {
         }),
       })
 
+      // ✅ FIX: response check
+      if (!res.ok) {
+        throw new Error("Order failed")
+      }
+
       const data = await res.json()
 
       if (!data.success) {
@@ -135,7 +154,6 @@ export default function CheckoutPage() {
         return
       }
 
-      // ✅ SUCCESS FLOW (same UX)
       const orderId = data.data.id || generateOrderId()
 
       clearCart()
@@ -159,7 +177,6 @@ export default function CheckoutPage() {
 
       <div className="grid lg:grid-cols-2 gap-16">
 
-        {/* LEFT */}
         <div className="space-y-10">
 
           {addresses.length > 0 && (
@@ -227,7 +244,6 @@ export default function CheckoutPage() {
 
         </div>
 
-        {/* RIGHT */}
         <div className="border rounded-xl p-8 shadow-sm bg-white h-fit">
 
           <h2 className="text-xl font-semibold mb-6">
