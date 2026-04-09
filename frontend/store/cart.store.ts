@@ -27,10 +27,22 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
+
       items: [],
 
       addToCart: (product) =>
         set((state) => {
+
+          // ✅ NEW: resolve image properly
+          const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL
+
+          const resolvedImage =
+            product.image
+              ? product.image.startsWith("http")
+                ? product.image
+                : `${IMAGE_BASE}/${product.image}`
+              : "/placeholder.png"
+
           const existing = state.items.find((i) => i.id === product.id)
 
           if (existing) {
@@ -44,7 +56,14 @@ export const useCartStore = create<CartState>()(
           }
 
           return {
-            items: [...state.items, { ...product, quantity: 1 }],
+            items: [
+              ...state.items,
+              {
+                ...product,
+                image: resolvedImage, // ✅ FIXED
+                quantity: 1,
+              },
+            ],
           }
         }),
 
@@ -87,6 +106,7 @@ export const useCartStore = create<CartState>()(
         const { items } = get()
         return items.reduce((total, item) => total + item.quantity, 0)
       },
+
     }),
     {
       name: "leora-cart",
