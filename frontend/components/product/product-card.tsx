@@ -26,6 +26,9 @@ export default function ProductCard({ product }: Props) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [position, setPosition] = useState({ x: 50, y: 50 })
 
+  // ✅ NEW: IMAGE BASE URL (critical fix)
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
@@ -57,11 +60,30 @@ export default function ProductCard({ product }: Props) {
       ? [product.image]
       : []
 
-  const mainImage = previewImage || images[0] || "/placeholder.png"
+  // ❌ OLD (kept)
+  // const mainImage = previewImage || images[0] || "/placeholder.png"
 
+  // ✅ NEW FIXED (with full URL support)
+  const mainImage =
+    previewImage ||
+    (images[0]
+      ? images[0].startsWith("http")
+        ? images[0]
+        : `${IMAGE_BASE}/${images[0]}`
+      : "/placeholder.png")
+
+  // ❌ OLD (kept)
+  // const hoverImage =
+  //   !previewImage && images.length > 1
+  //     ? images[1]
+  //     : null
+
+  // ✅ NEW FIXED
   const hoverImage =
     !previewImage && images.length > 1
-      ? images[1]
+      ? images[1].startsWith("http")
+        ? images[1]
+        : `${IMAGE_BASE}/${images[1]}`
       : null
 
   return (
