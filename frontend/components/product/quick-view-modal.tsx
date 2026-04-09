@@ -19,6 +19,9 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
   const addToCart = useCartStore((state) => state.addToCart)
   const openCart = useCartUIStore((state) => state.openCart)
 
+  // ✅ NEW: IMAGE BASE URL
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL
+
   useEffect(() => {
 
     if (open) {
@@ -35,7 +38,18 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
   if (!open) return null
 
-  // ✅ FIXED HERE
+  // ✅ FIXED IMAGE URL LOGIC
+  const resolvedImage =
+    product.image
+      ? product.image.startsWith("http")
+        ? product.image
+        : `${IMAGE_BASE}/${product.image}`
+      : product.images?.[0]
+      ? product.images[0].startsWith("http")
+        ? product.images[0]
+        : `${IMAGE_BASE}/${product.images[0]}`
+      : "/placeholder.png"
+
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
@@ -71,8 +85,17 @@ export default function QuickViewModal({ product, open, onClose }: Props) {
 
         <div className="bg-gray-100">
 
+          {/* ❌ OLD (kept)
           <img
             src={product.image || product.images?.[0] || "/placeholder.png"}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
+          */}
+
+          {/* ✅ NEW FIXED */}
+          <img
+            src={resolvedImage}
             alt={product.name}
             className="w-full h-full object-cover"
           />
