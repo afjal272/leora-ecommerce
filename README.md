@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Leora — Production-Grade E-Commerce Platform
 
-## Getting Started
+A full-stack eCommerce system built with a focus on real-world architecture, scalability, and clean engineering practices.  
+This is not just a UI project — it implements a complete business flow from authentication to order management.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🧠 What This Project Solves
+
+Most beginner projects stop at UI or static data.  
+Leora goes beyond that by implementing:
+
+- End-to-end authentication flow (OTP + JWT)
+- Admin-controlled product system
+- Persistent cart & checkout logic
+- Order lifecycle management
+- Backend-driven architecture
+
+---
+
+## ⚙️ Tech Stack
+
+### Frontend
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Zustand (State Management)
+- React Hook Form
+
+### Backend
+- Node.js
+- Express.js
+- TypeScript
+- Prisma ORM
+- PostgreSQL (Neon)
+
+### Architecture
+- REST API communication
+- Role-based access control
+- Modular backend structure
+
+---
+
+## 🔐 Core Features
+
+### Authentication
+- OTP-based login system
+- JWT authentication
+- Secure role handling (User / Admin)
+
+### Product System
+- Admin-only product creation & updates
+- Dynamic product rendering
+- Structured data handling
+
+### Cart & Checkout
+- Add to cart with quantity control
+- Address selection system
+- Seamless checkout flow
+
+### Orders
+- Order creation & persistence
+- Order history tracking
+- Status-based lifecycle
+
+---
+
+## 📁 Project Structure
+
+```
+/frontend
+  /app
+  /components
+  /store
+  /lib
+
+/backend
+  /controllers
+  /routes
+  /middlewares
+  /prisma
+  /utils
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌐 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Frontend (.env)
+```
+NEXT_PUBLIC_API_URL=https://your-backend-url
+```
 
-## Learn More
+### Backend (.env)
+```
+PORT=5000
+DATABASE_URL=your_postgresql_url
+JWT_SECRET=your_secret
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Running Locally
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔄 System Flow (High-Level)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. User logs in via OTP  
+2. JWT issued and stored  
+3. Products fetched from backend  
+4. User adds items to cart  
+5. Checkout triggers order creation  
+6. Order stored and visible in dashboard  
+
+---
+
+## 📈 Future Scope
+
+- Razorpay Payment Integration  
+- Invoice Generation System  
+- WhatsApp Notifications  
+- Advanced Search & Filtering  
+- Performance Optimization  
+
+---
+
+## 💡 Key Engineering Highlights
+
+- End-to-end TypeScript (frontend + backend)
+- Clean separation of concerns
+- Scalable folder architecture
+- Real-world API design
+- Production deployment ready
+
+---
+
+## 👨‍💻 Author
+
+**Md Afjal Ali**
