@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/store/auth.store"
 
 export default function OTPContent() {
+
   const router = useRouter()
   const params = useSearchParams()
   const mobile = params.get("mobile")
@@ -16,24 +17,6 @@ export default function OTPContent() {
   const [loading, setLoading] = useState(false)
 
   const inputs = useRef<(HTMLInputElement | null)[]>([])
-
-  // 🔥 FIX: double OTP issue (React strict mode)
-  const hasSent = useRef(false)
-
-  // 🔥 AUTO SEND OTP (FIXED)
-  useEffect(() => {
-    if (!mobile || hasSent.current) return
-
-    hasSent.current = true
-
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mobile }),
-    })
-  }, [mobile])
 
   // 🔥 TIMER
   useEffect(() => {
@@ -67,10 +50,15 @@ export default function OTPContent() {
     }
   }
 
-  // 🔥 VERIFY OTP (FINAL FIXED)
+  // 🔥 VERIFY OTP (FINAL STABLE)
   const handleVerify = async () => {
+
     const code = otp.join("")
-    if (code.length !== 6) return
+
+    if (code.length !== 6) {
+      alert("Enter complete OTP")
+      return
+    }
 
     if (!mobile) {
       alert("Mobile missing")
@@ -100,26 +88,17 @@ export default function OTPContent() {
         return
       }
 
-      // ✅ FINAL SAFE EXTRACT
       const user = data.data.user
       const token = data.data.token
 
       if (!user || !token) {
-        console.error("Invalid login response:", data)
-        alert("Login response invalid")
+        alert("Invalid login response")
         return
       }
 
-      // ✅ STORE FIX (correct shape)
-      setAuth({
-        user,
-        token,
-      })
-
-      // ✅ IMPORTANT (future API calls ke liye)
+      // ✅ STORE
+      setAuth({ user, token })
       localStorage.setItem("token", token)
-
-      console.log("USER STORED:", user)
 
       router.push("/")
 
@@ -131,20 +110,27 @@ export default function OTPContent() {
     }
   }
 
-  // 🔥 RESEND OTP
+  // 🔥 RESEND OTP (WORKING)
   const handleResend = async () => {
+
     if (!mobile) return
 
     try {
       setTimeLeft(30)
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ mobile }),
       })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        alert("Failed to resend OTP")
+      }
 
     } catch (err) {
       console.error(err)
@@ -153,6 +139,7 @@ export default function OTPContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+
       <div className="bg-white w-full max-w-md p-10 rounded-2xl shadow-lg">
 
         <h1 className="text-2xl font-semibold text-center mb-2">
@@ -164,6 +151,7 @@ export default function OTPContent() {
         </p>
 
         <div className="flex justify-between gap-2 mb-6">
+
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -179,6 +167,7 @@ export default function OTPContent() {
               className="w-12 h-12 text-center text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
           ))}
+
         </div>
 
         <button
@@ -190,6 +179,7 @@ export default function OTPContent() {
         </button>
 
         <div className="text-center mt-4 text-sm text-gray-500">
+
           {timeLeft > 0 ? (
             <span>Resend OTP in {timeLeft}s</span>
           ) : (
@@ -200,9 +190,11 @@ export default function OTPContent() {
               Resend OTP
             </button>
           )}
+
         </div>
 
       </div>
+
     </div>
   )
 }
