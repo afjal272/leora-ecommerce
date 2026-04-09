@@ -18,13 +18,13 @@ interface AuthState {
   updateName: (name: string) => void
   name: string
 
-  // ✅ ADD THIS
   login: (user: User, token: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
+
       user: null,
       token: null,
       name: "",
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
           name: data.user.name,
         }),
 
-      // ✅ ADD THIS (wrapper over setAuth)
+      // ✅ keep login but align with setAuth
       login: (user, token) =>
         set({
           user,
@@ -60,9 +60,17 @@ export const useAuthStore = create<AuthState>()(
           user: { ...currentUser, name },
         })
       },
+
     }),
     {
       name: "leora-auth",
+
+      // ✅ NEW: only persist required fields
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        name: state.name,
+      }),
     }
   )
 )
