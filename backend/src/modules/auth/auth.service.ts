@@ -8,7 +8,7 @@ import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ SAFE SECRET FUNCTION (TS + runtime safe)
+// ✅ SAFE SECRET FUNCTION
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (!secret) {
@@ -17,7 +17,7 @@ function getJwtSecret(): string {
   return secret
 }
 
-// ✅ JWT OPTIONS (fix overload issue)
+// ✅ JWT OPTIONS
 const jwtOptions: SignOptions = {
   expiresIn: "7d",
 }
@@ -90,7 +90,7 @@ export const loginUser = async (data: any) => {
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      getJwtSecret(),
+      getJwtSecret() as jwt.Secret, // 🔥 FINAL FIX
       jwtOptions
     )
 
@@ -149,9 +149,9 @@ export const loginUser = async (data: any) => {
   // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
-    getJwtSecret(),
+    getJwtSecret() as jwt.Secret, // 🔥 FINAL FIX
     jwtOptions
   )
 
   return { user, token }
-}
+} 
