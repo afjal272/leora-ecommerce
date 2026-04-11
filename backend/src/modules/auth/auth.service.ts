@@ -97,22 +97,31 @@ export const loginUser = async (data: any) => {
   // ================= ADMIN OTP =================
   if (user.role === "ADMIN") {
 
+    // 🔥 SAFE EMAIL
+    if (!user.email) {
+      throw new Error("Admin email missing")
+    }
+
+    const email = user.email as string
+
+    // STEP 1 → SEND OTP
     if (!data.otp) {
       const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-      setOtp(user.email, otp, "email")
+      setOtp(email, otp, "email")
 
       console.log("🔥 ADMIN OTP:", otp)
 
       return { requireOTP: true }
     }
 
-    const record = getOtp(user.email, "email")
+    // STEP 2 → VERIFY OTP
+    const record = getOtp(email, "email")
 
     if (!record) throw new Error("OTP not found")
 
     if (Date.now() > record.expiresAt) {
-      deleteOtp(user.email, "email")
+      deleteOtp(email, "email")
       throw new Error("OTP expired")
     }
 
@@ -120,9 +129,10 @@ export const loginUser = async (data: any) => {
       throw new Error("Invalid OTP")
     }
 
-    deleteOtp(user.email, "email")
+    deleteOtp(email, "email")
   }
 
+  // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     process.env.JWT_SECRET as string,
