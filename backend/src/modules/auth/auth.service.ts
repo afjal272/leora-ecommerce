@@ -94,12 +94,16 @@ export const loginUser = async (data: any) => {
 
   if (!user) throw new Error("Invalid credentials")
 
-  // ✅ FIX: proper narrowing (NO !)
+  // ✅ FINAL FIX (TS + runtime safe)
   if (!user.password) {
     throw new Error("User password missing")
   }
 
-  const isMatch = await bcrypt.compare(parsed.password, user.password)
+  const isMatch = await bcrypt.compare(
+    parsed.password,
+    user.password as string
+  )
+
   if (!isMatch) throw new Error("Invalid credentials")
 
   // ================= ADMIN OTP =================
