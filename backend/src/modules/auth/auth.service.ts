@@ -7,12 +7,14 @@ import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// 🔥 FIX: GLOBAL SECRET (TYPE SAFE)
-const JWT_SECRET = process.env.JWT_SECRET
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET missing in environment variables")
-}
+// 🔥 FINAL PRODUCTION-SAFE SECRET HANDLING
+const JWT_SECRET: string = (() => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error("JWT_SECRET missing in environment variables")
+  }
+  return secret
+})()
 
 // NORMALIZE
 const normalizeMobile = (mobile: string) => {
