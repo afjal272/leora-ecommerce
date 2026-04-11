@@ -72,7 +72,7 @@ export const loginUser = async (data: any) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       JWT_SECRET,
-      { expiresIn: "7d" } // ✅ DIRECT (NO TYPE ISSUE)
+      { expiresIn: "7d" }
     )
 
     return {
@@ -105,7 +105,7 @@ export const loginUser = async (data: any) => {
       throw new Error("Admin email missing")
     }
 
-    const email = user.email
+    const email = user.email as string // ✅ FINAL FIX (TYPE SAFE)
 
     // SEND OTP
     if (!data.otp) {
@@ -124,7 +124,7 @@ export const loginUser = async (data: any) => {
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     JWT_SECRET,
-    { expiresIn: "7d" } // ✅ DIRECT FIX
+    { expiresIn: "7d" }
   )
 
   return {
