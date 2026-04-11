@@ -97,14 +97,14 @@ export const loginUser = async (data: any) => {
   // ================= ADMIN OTP =================
   if (user.role === "ADMIN") {
 
-    // 🔥 SAFE EMAIL
-    if (!user.email) {
+    // 🔥 FORCE SAFE STRING (THIS WAS THE REAL FIX)
+    const email = user.email ?? ""
+
+    if (!email) {
       throw new Error("Admin email missing")
     }
 
-    const email = user.email as string
-
-    // STEP 1 → SEND OTP
+    // SEND OTP
     if (!data.otp) {
       const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
@@ -115,7 +115,7 @@ export const loginUser = async (data: any) => {
       return { requireOTP: true }
     }
 
-    // STEP 2 → VERIFY OTP
+    // VERIFY OTP
     const record = getOtp(email, "email")
 
     if (!record) throw new Error("OTP not found")
