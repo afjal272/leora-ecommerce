@@ -7,9 +7,8 @@ import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ FINAL SECRET FIX
-const JWT_SECRET = process.env.JWT_SECRET!
-
+// ✅ SAFE SECRET
+const JWT_SECRET = process.env.JWT_SECRET
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET missing in environment variables")
 }
@@ -69,9 +68,9 @@ export const loginUser = async (data: any) => {
       })
     }
 
-    const token: string = jwt.sign(
+    const token = jwt.sign(
       { userId: user.id, role: user.role },
-      JWT_SECRET as jwt.Secret,
+      JWT_SECRET,
       { expiresIn: "7d" }
     )
 
@@ -95,7 +94,12 @@ export const loginUser = async (data: any) => {
 
   if (!user) throw new Error("Invalid credentials")
 
-  const isMatch = await bcrypt.compare(parsed.password, user.password!)
+  // ✅ FIX: proper narrowing (NO !)
+  if (!user.password) {
+    throw new Error("User password missing")
+  }
+
+  const isMatch = await bcrypt.compare(parsed.password, user.password)
   if (!isMatch) throw new Error("Invalid credentials")
 
   // ================= ADMIN OTP =================
@@ -105,7 +109,7 @@ export const loginUser = async (data: any) => {
       throw new Error("Admin email missing")
     }
 
-    const email = user.email as string
+    const email = user.email
 
     // SEND OTP
     if (!data.otp) {
@@ -121,9 +125,9 @@ export const loginUser = async (data: any) => {
   }
 
   // ================= FINAL TOKEN =================
-  const token: string = jwt.sign(
+  const token = jwt.sign(
     { userId: user.id, role: user.role },
-    JWT_SECRET as jwt.Secret,
+    JWT_SECRET,
     { expiresIn: "7d" }
   )
 
