@@ -1,20 +1,20 @@
 import prisma from "../../lib/prisma"
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import * as jwt from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
 import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// 🔥 FINAL PRODUCTION-SAFE SECRET HANDLING
-const JWT_SECRET: string = (() => {
+// 🔥 PRODUCTION-SAFE SECRET HANDLING (NO TS ERROR EVER)
+function getJwtSecret(): jwt.Secret {
   const secret = process.env.JWT_SECRET
   if (!secret) {
     throw new Error("JWT_SECRET missing in environment variables")
   }
   return secret
-})()
+}
 
 // NORMALIZE
 const normalizeMobile = (mobile: string) => {
@@ -84,7 +84,7 @@ export const loginUser = async (data: any) => {
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: "7d" }
     )
 
@@ -106,11 +106,11 @@ export const loginUser = async (data: any) => {
   // ================= ADMIN OTP =================
   if (user.role === "ADMIN") {
 
-    const email = user.email ?? ""
-
-    if (!email) {
+    if (!user.email) {
       throw new Error("Admin email missing")
     }
+
+    const email = user.email
 
     // SEND OTP
     if (!data.otp) {
@@ -143,7 +143,7 @@ export const loginUser = async (data: any) => {
   // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: "7d" }
   )
 
