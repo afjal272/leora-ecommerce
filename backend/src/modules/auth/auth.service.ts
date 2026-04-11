@@ -1,23 +1,20 @@
 import prisma from "../../lib/prisma"
 import bcrypt from "bcrypt"
-import * as jwt from "jsonwebtoken"
-import { SignOptions } from "jsonwebtoken"
+import jwt, { SignOptions } from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
-import { verifyOtp, createOtp } from "./otp.service" // ✅ DB आधारित
+import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ SAFE SECRET
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET
-  if (!secret) {
-    throw new Error("JWT_SECRET missing in environment variables")
-  }
-  return secret
+// ✅ CLEAN SECRET (NO FUNCTION DRAMA)
+const JWT_SECRET = process.env.JWT_SECRET as string
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET missing in environment variables")
 }
 
-// ✅ JWT OPTIONS
+// ✅ JWT OPTIONS (TYPE SAFE)
 const jwtOptions: SignOptions = {
   expiresIn: "7d",
 }
@@ -58,7 +55,6 @@ export const loginUser = async (data: any) => {
 
     const cleanMobile = normalizeMobile(mobile)
 
-    // ✅ DB OTP verify
     await verifyOtp(cleanMobile, data.otp, "mobile")
 
     const email = `${cleanMobile}@temp.com`
@@ -80,7 +76,7 @@ export const loginUser = async (data: any) => {
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      getJwtSecret(),
+      JWT_SECRET,
       jwtOptions
     )
 
@@ -107,32 +103,32 @@ export const loginUser = async (data: any) => {
   const isMatch = await bcrypt.compare(parsed.password, user.password)
   if (!isMatch) throw new Error("Invalid credentials")
 
-  // ================= ADMIN OTP FLOW =================
+  // ================= ADMIN OTP =================
   if (user.role === "ADMIN") {
 
-    const email = user.email
-
-    if (!email) {
+    if (!user.email) {
       throw new Error("Admin email missing")
     }
 
-    // STEP 1 → SEND OTP
+    const email = user.email
+
+    // SEND OTP
     if (!data.otp) {
-      const otp = await createOtp(email, "email") // ✅ DB
+      const otp = await createOtp(email, "email")
 
       console.log("🔥 ADMIN OTP:", otp)
 
       return { requireOTP: true }
     }
 
-    // STEP 2 → VERIFY OTP
+    // VERIFY OTP
     await verifyOtp(email, data.otp, "email")
   }
 
   // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
-    getJwtSecret(),
+    JWT_SECRET,
     jwtOptions
   )
 
