@@ -3,17 +3,16 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
-import { getOtp, deleteOtp, setOtp } from "./otp.store" // ✅ ADDED setOtp
+import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
-type LoginInput = z.infer<typeof loginSchema>
 
-// ✅ NORMALIZE MOBILE
+// NORMALIZE
 const normalizeMobile = (mobile: string) => {
   return mobile.replace("+91", "").trim()
 }
 
-// ✅ REGISTER
+// REGISTER
 export const registerUser = async (data: RegisterInput) => {
   const hashed = await bcrypt.hash(data.password, 10)
 
@@ -29,155 +28,106 @@ export const registerUser = async (data: RegisterInput) => {
   return safeUser
 }
 
-// ✅ LOGIN (UPDATED WITH ADMIN OTP FLOW)
+// LOGIN
 export const loginUser = async (data: any) => {
-  try {
-    console.log("LOGIN INPUT:", data)
 
-    const mobile =
-      typeof data.mobile === "string"
-        ? data.mobile
-        : typeof data.phone === "string"
-        ? data.phone
-        : null
+  const mobile =
+    typeof data.mobile === "string"
+      ? data.mobile
+      : typeof data.phone === "string"
+      ? data.phone
+      : null
 
-    // =======================
-    // 🔐 OTP LOGIN (USER)
-    // =======================
-    if (mobile && typeof data.otp === "string" && data.otp.length === 6) {
-      const cleanMobile = normalizeMobile(mobile)
+  // ================= USER OTP =================
+  if (mobile && data.otp) {
 
-      const record = getOtp(cleanMobile)
-      console.log("OTP STORE:", record, "INPUT:", cleanMobile)
+    const cleanMobile = normalizeMobile(mobile)
 
-      if (!record) throw new Error("OTP not found")
+    const record = getOtp(cleanMobile, "mobile")
 
-      if (Date.now() > record.expiresAt) {
-        deleteOtp(cleanMobile)
-        throw new Error("OTP expired")
-      }
+    if (!record) throw new Error("OTP not found")
 
-      if (String(record.otp) !== String(data.otp)) {
-        throw new Error("Invalid OTP")
-      }
+    if (Date.now() > record.expiresAt) {
+      deleteOtp(cleanMobile, "mobile")
+      throw new Error("OTP expired")
+    }
 
-      deleteOtp(cleanMobile)
+    if (record.otp !== data.otp) {
+      throw new Error("Invalid OTP")
+    }
 
-      const email = `${cleanMobile}@temp.com`
+    deleteOtp(cleanMobile, "mobile")
 
-      let user = await prisma.user.findUnique({
-        where: { email },
-      })
+    const email = `${cleanMobile}@temp.com`
 
-      if (!user) {
-        console.log("Creating new OTP user...")
+    let user = await prisma.user.findUnique({ where: { email } })
 
-        user = await prisma.user.create({
-          data: {
-            name: "User",
-            email,
-            password: "no-pass",
-            role: "USER",
-          },
-        })
-      }
-
-      if (!user) throw new Error("User creation failed")
-
-      if (!process.env.JWT_SECRET) {
-        throw new Error("JWT_SECRET missing")
-      }
-
-      const token = jwt.sign(
-        {
-          userId: user.id,
-          role: user.role,
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: "User",
+          email,
+          password: "no-pass",
+          role: "USER",
         },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      )
-
-      const safeUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      }
-
-      return { user: safeUser, token }
-    }
-
-    // =======================
-    // 🔐 EMAIL LOGIN
-    // =======================
-    console.log("Falling to EMAIL LOGIN")
-
-    const parsed = loginSchema.parse(data)
-
-    const user = await prisma.user.findUnique({
-      where: { email: parsed.email },
-    })
-
-    if (!user) throw new Error("Invalid credentials")
-
-    const isMatch = await bcrypt.compare(parsed.password, user.password)
-    if (!isMatch) throw new Error("Invalid credentials")
-
-    // =======================
-    // 🔥 ADMIN OTP FLOW
-    // =======================
-    if (user.role === "ADMIN") {
-
-      // 🔥 STEP 1: if OTP NOT PROVIDED → send OTP
-      if (!data.otp) {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-        setOtp(user.email, otp)
-
-        console.log("🔥 ADMIN OTP:", otp, "Email:", user.email)
-
-        return { requireOTP: true }
-      }
-
-      // 🔥 STEP 2: verify OTP
-      const record = getOtp(user.email)
-
-      if (!record) throw new Error("OTP not found")
-
-      if (Date.now() > record.expiresAt) {
-        deleteOtp(user.email)
-        throw new Error("OTP expired")
-      }
-
-      if (String(record.otp) !== String(data.otp)) {
-        throw new Error("Invalid OTP")
-      }
-
-      deleteOtp(user.email)
-    }
-
-    // =======================
-    // 🔐 FINAL TOKEN
-    // =======================
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET missing")
+      })
     }
 
     const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET as string,
       { expiresIn: "7d" }
     )
 
-    const { password, ...safeUser } = user
-
-    return { user: safeUser, token }
-
-  } catch (error: any) {
-    console.error("LOGIN SERVICE ERROR:", error)
-    throw new Error(error.message || "Login failed")
+    return { user, token }
   }
+
+  // ================= EMAIL LOGIN =================
+  const parsed = loginSchema.parse(data)
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.email },
+  })
+
+  if (!user) throw new Error("Invalid credentials")
+
+  const isMatch = await bcrypt.compare(parsed.password, user.password)
+  if (!isMatch) throw new Error("Invalid credentials")
+
+  // ================= ADMIN OTP =================
+  if (user.role === "ADMIN") {
+
+    if (!data.otp) {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+      setOtp(user.email, otp, "email")
+
+      console.log("🔥 ADMIN OTP:", otp)
+
+      return { requireOTP: true }
+    }
+
+    const record = getOtp(user.email, "email")
+
+    if (!record) throw new Error("OTP not found")
+
+    if (Date.now() > record.expiresAt) {
+      deleteOtp(user.email, "email")
+      throw new Error("OTP expired")
+    }
+
+    if (record.otp !== data.otp) {
+      throw new Error("Invalid OTP")
+    }
+
+    deleteOtp(user.email, "email")
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "7d" }
+  )
+
+  return { user, token }
 }
