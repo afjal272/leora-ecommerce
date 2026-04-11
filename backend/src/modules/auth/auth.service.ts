@@ -7,12 +7,14 @@ import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ SAFE SECRET
-const JWT_SECRET = process.env.JWT_SECRET as string
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET missing in environment variables")
-}
+// ✅ FINAL SECRET FIX (TS + runtime safe)
+const JWT_SECRET: string = (() => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error("JWT_SECRET missing in environment variables")
+  }
+  return secret
+})()
 
 // NORMALIZE
 const normalizeMobile = (mobile: string) => {
@@ -105,7 +107,7 @@ export const loginUser = async (data: any) => {
       throw new Error("Admin email missing")
     }
 
-    const email = user.email as string // ✅ FINAL FIX (TYPE SAFE)
+    const email = user.email as string
 
     // SEND OTP
     if (!data.otp) {
