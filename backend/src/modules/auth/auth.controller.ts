@@ -1,14 +1,14 @@
 import { Request, Response } from "express"
 import { registerUser, loginUser } from "./auth.service"
 import { registerSchema } from "./auth.schema"
-import { setOtp } from "./otp.store"
+import { createOtp } from "./otp.service" // ✅ NEW
 
-// 🔥 NORMALIZE MOBILE
+// NORMALIZE
 const normalizeMobile = (mobile: string) => {
   return mobile.replace("+91", "").trim()
 }
 
-// ✅ REGISTER
+// REGISTER
 export const register = async (req: Request, res: Response) => {
   try {
     const data = registerSchema.parse(req.body)
@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ SEND OTP (PHONE)
+// SEND OTP (PHONE - DB BASED)
 export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { mobile, phone } = req.body
@@ -45,26 +45,24 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     const cleanMobile = normalizeMobile(finalMobile)
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otp = await createOtp(cleanMobile, "mobile") // ✅ DB OTP
 
-    // 🔥 FIXED (3 args)
-    setOtp(cleanMobile, otp, "mobile")
-
-    console.log("🔥 OTP:", otp, "Mobile:", cleanMobile)
+    console.log("🔥 OTP:", otp, "Mobile:", cleanMobile) // TEMP
 
     return res.json({
       success: true,
       message: "OTP sent",
     })
+
   } catch (err: any) {
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
       message: err.message,
     })
   }
 }
 
-// 🔥 ADMIN OTP (EMAIL)
+// ADMIN OTP (EMAIL - DB BASED)
 export const sendAdminOtp = async (req: Request, res: Response) => {
   try {
     const { email } = req.body
@@ -76,10 +74,7 @@ export const sendAdminOtp = async (req: Request, res: Response) => {
       })
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-    // 🔥 FIXED
-    setOtp(email, otp, "email")
+    const otp = await createOtp(email, "email") // ✅ DB OTP
 
     console.log("🔥 ADMIN OTP:", otp, "Email:", email)
 
@@ -87,19 +82,21 @@ export const sendAdminOtp = async (req: Request, res: Response) => {
       success: true,
       message: "Admin OTP sent",
     })
+
   } catch (err: any) {
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
       message: err.message,
     })
   }
 }
 
-// ✅ LOGIN
+// LOGIN
 export const login = async (req: Request, res: Response) => {
   try {
     const result = await loginUser(req.body)
 
+    // ADMIN OTP STEP
     if (result?.requireOTP) {
       return res.status(200).json({
         success: true,
