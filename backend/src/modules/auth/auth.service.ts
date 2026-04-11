@@ -7,6 +7,13 @@ import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
+// 🔥 FIX: GLOBAL SECRET (TYPE SAFE)
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET missing in environment variables")
+}
+
 // NORMALIZE
 const normalizeMobile = (mobile: string) => {
   return mobile.replace("+91", "").trim()
@@ -75,7 +82,7 @@ export const loginUser = async (data: any) => {
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      process.env.JWT_SECRET as string,
+      JWT_SECRET,
       { expiresIn: "7d" }
     )
 
@@ -97,7 +104,6 @@ export const loginUser = async (data: any) => {
   // ================= ADMIN OTP =================
   if (user.role === "ADMIN") {
 
-    // 🔥 FORCE SAFE STRING (THIS WAS THE REAL FIX)
     const email = user.email ?? ""
 
     if (!email) {
@@ -135,7 +141,7 @@ export const loginUser = async (data: any) => {
   // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
-    process.env.JWT_SECRET as string,
+    JWT_SECRET,
     { expiresIn: "7d" }
   )
 
