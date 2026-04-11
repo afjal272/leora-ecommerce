@@ -1,19 +1,25 @@
 import prisma from "../../lib/prisma"
 import bcrypt from "bcrypt"
 import * as jwt from "jsonwebtoken"
+import { SignOptions } from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
 import { getOtp, deleteOtp, setOtp } from "./otp.store"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// 🔥 PRODUCTION-SAFE SECRET HANDLING (NO TS ERROR EVER)
-function getJwtSecret(): jwt.Secret {
+// ✅ SAFE SECRET FUNCTION (TS + runtime safe)
+function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (!secret) {
     throw new Error("JWT_SECRET missing in environment variables")
   }
   return secret
+}
+
+// ✅ JWT OPTIONS (fix overload issue)
+const jwtOptions: SignOptions = {
+  expiresIn: "7d",
 }
 
 // NORMALIZE
@@ -85,7 +91,7 @@ export const loginUser = async (data: any) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       getJwtSecret(),
-      { expiresIn: "7d" }
+      jwtOptions
     )
 
     return { user, token }
@@ -144,7 +150,7 @@ export const loginUser = async (data: any) => {
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     getJwtSecret(),
-    { expiresIn: "7d" }
+    jwtOptions
   )
 
   return { user, token }
