@@ -7,7 +7,7 @@ import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ FINAL SECRET FIX (SIMPLE + STABLE)
+// ✅ FINAL SECRET FIX
 const JWT_SECRET = process.env.JWT_SECRET!
 
 if (!JWT_SECRET) {
@@ -69,9 +69,9 @@ export const loginUser = async (data: any) => {
       })
     }
 
-    const token = jwt.sign(
+    const token: string = jwt.sign(
       { userId: user.id, role: user.role },
-      JWT_SECRET,
+      JWT_SECRET as jwt.Secret,
       { expiresIn: "7d" }
     )
 
@@ -121,9 +121,9 @@ export const loginUser = async (data: any) => {
   }
 
   // ================= FINAL TOKEN =================
-  const token = jwt.sign(
+  const token: string = jwt.sign(
     { userId: user.id, role: user.role },
-    JWT_SECRET,
+    JWT_SECRET as jwt.Secret,
     { expiresIn: "7d" }
   )
 
