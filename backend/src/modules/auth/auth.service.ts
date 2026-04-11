@@ -7,6 +7,15 @@ import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
+// ✅ LOGIN TYPE (NO MORE any)
+type LoginInput = {
+  email?: string
+  password?: string
+  mobile?: string
+  phone?: string
+  otp?: string
+}
+
 // ✅ SAFE SECRET
 const JWT_SECRET = process.env.JWT_SECRET
 if (!JWT_SECRET) {
@@ -35,7 +44,7 @@ export const registerUser = async (data: RegisterInput) => {
 }
 
 // LOGIN
-export const loginUser = async (data: any) => {
+export const loginUser = async (data: LoginInput) => {
 
   const mobile =
     typeof data.mobile === "string"
@@ -58,11 +67,18 @@ export const loginUser = async (data: any) => {
     })
 
     if (!user) {
+
+      // ✅ RANDOM SECURE PASSWORD (NO MORE "no-pass")
+      const randomPassword = await bcrypt.hash(
+        Math.random().toString(36),
+        10
+      )
+
       user = await prisma.user.create({
         data: {
           name: "User",
           email,
-          password: "no-pass",
+          password: randomPassword,
           role: "USER",
         },
       })
@@ -94,9 +110,12 @@ export const loginUser = async (data: any) => {
 
   if (!user) throw new Error("Invalid credentials")
 
-  // ✅ FINAL FIX (TS + runtime safe)
   if (!user.password) {
     throw new Error("User password missing")
+  }
+
+  if (!parsed.password) {
+    throw new Error("Password required for email login")
   }
 
   const isMatch = await bcrypt.compare(
@@ -115,7 +134,6 @@ export const loginUser = async (data: any) => {
 
     const email = user.email
 
-    // SEND OTP
     if (!data.otp) {
       const otp = await createOtp(email, "email")
 
@@ -124,7 +142,6 @@ export const loginUser = async (data: any) => {
       return { requireOTP: true }
     }
 
-    // VERIFY OTP
     await verifyOtp(email, data.otp, "email")
   }
 
