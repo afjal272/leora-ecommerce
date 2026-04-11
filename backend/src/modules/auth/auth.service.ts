@@ -7,14 +7,12 @@ import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ FINAL SECRET FIX (TS + runtime safe)
-const JWT_SECRET: string = (() => {
-  const secret = process.env.JWT_SECRET
-  if (!secret) {
-    throw new Error("JWT_SECRET missing in environment variables")
-  }
-  return secret
-})()
+// ✅ FINAL SECRET FIX (SIMPLE + STABLE)
+const JWT_SECRET = process.env.JWT_SECRET!
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET missing in environment variables")
+}
 
 // NORMALIZE
 const normalizeMobile = (mobile: string) => {
