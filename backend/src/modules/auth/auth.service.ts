@@ -1,22 +1,17 @@
 import prisma from "../../lib/prisma"
 import bcrypt from "bcrypt"
-import jwt, { SignOptions } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
 import { verifyOtp, createOtp } from "./otp.service"
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ CLEAN SECRET (NO FUNCTION DRAMA)
+// ✅ SAFE SECRET
 const JWT_SECRET = process.env.JWT_SECRET as string
 
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET missing in environment variables")
-}
-
-// ✅ JWT OPTIONS (TYPE SAFE)
-const jwtOptions: SignOptions = {
-  expiresIn: "7d",
 }
 
 // NORMALIZE
@@ -77,7 +72,7 @@ export const loginUser = async (data: any) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       JWT_SECRET,
-      jwtOptions
+      { expiresIn: "7d" } // ✅ DIRECT (NO TYPE ISSUE)
     )
 
     return {
@@ -129,7 +124,7 @@ export const loginUser = async (data: any) => {
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     JWT_SECRET,
-    jwtOptions
+    { expiresIn: "7d" } // ✅ DIRECT FIX
   )
 
   return {
