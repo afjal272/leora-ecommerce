@@ -4,11 +4,11 @@ import * as jwt from "jsonwebtoken"
 import { SignOptions } from "jsonwebtoken"
 import { z } from "zod"
 import { registerSchema, loginSchema } from "./auth.schema"
-import { getOtp, deleteOtp, setOtp } from "./otp.store"
+import { verifyOtp, createOtp } from "./otp.service" // ✅ DB आधारित
 
 type RegisterInput = z.infer<typeof registerSchema>
 
-// ✅ SAFE SECRET FUNCTION
+// ✅ SAFE SECRET
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (!secret) {
@@ -53,29 +53,19 @@ export const loginUser = async (data: any) => {
       ? data.phone
       : null
 
-  // ================= USER OTP =================
+  // ================= USER OTP LOGIN =================
   if (mobile && data.otp) {
 
     const cleanMobile = normalizeMobile(mobile)
 
-    const record = getOtp(cleanMobile, "mobile")
-
-    if (!record) throw new Error("OTP not found")
-
-    if (Date.now() > record.expiresAt) {
-      deleteOtp(cleanMobile, "mobile")
-      throw new Error("OTP expired")
-    }
-
-    if (record.otp !== data.otp) {
-      throw new Error("Invalid OTP")
-    }
-
-    deleteOtp(cleanMobile, "mobile")
+    // ✅ DB OTP verify
+    await verifyOtp(cleanMobile, data.otp, "mobile")
 
     const email = `${cleanMobile}@temp.com`
 
-    let user = await prisma.user.findUnique({ where: { email } })
+    let user = await prisma.user.findUnique({
+      where: { email },
+    })
 
     if (!user) {
       user = await prisma.user.create({
@@ -90,11 +80,19 @@ export const loginUser = async (data: any) => {
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      getJwtSecret() as jwt.Secret, // 🔥 FINAL FIX
+      getJwtSecret(),
       jwtOptions
     )
 
-    return { user, token }
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    }
   }
 
   // ================= EMAIL LOGIN =================
@@ -109,49 +107,42 @@ export const loginUser = async (data: any) => {
   const isMatch = await bcrypt.compare(parsed.password, user.password)
   if (!isMatch) throw new Error("Invalid credentials")
 
-  // ================= ADMIN OTP =================
+  // ================= ADMIN OTP FLOW =================
   if (user.role === "ADMIN") {
-
-    if (!user.email) {
-      throw new Error("Admin email missing")
-    }
 
     const email = user.email
 
-    // SEND OTP
-    if (!data.otp) {
-      const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    if (!email) {
+      throw new Error("Admin email missing")
+    }
 
-      setOtp(email, otp, "email")
+    // STEP 1 → SEND OTP
+    if (!data.otp) {
+      const otp = await createOtp(email, "email") // ✅ DB
 
       console.log("🔥 ADMIN OTP:", otp)
 
       return { requireOTP: true }
     }
 
-    // VERIFY OTP
-    const record = getOtp(email, "email")
-
-    if (!record) throw new Error("OTP not found")
-
-    if (Date.now() > record.expiresAt) {
-      deleteOtp(email, "email")
-      throw new Error("OTP expired")
-    }
-
-    if (record.otp !== data.otp) {
-      throw new Error("Invalid OTP")
-    }
-
-    deleteOtp(email, "email")
+    // STEP 2 → VERIFY OTP
+    await verifyOtp(email, data.otp, "email")
   }
 
   // ================= FINAL TOKEN =================
   const token = jwt.sign(
     { userId: user.id, role: user.role },
-    getJwtSecret() as jwt.Secret, // 🔥 FINAL FIX
+    getJwtSecret(),
     jwtOptions
   )
 
-  return { user, token }
-} 
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+    token,
+  }
+}
