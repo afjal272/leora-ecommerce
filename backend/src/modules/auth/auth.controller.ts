@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ SEND OTP (PHONE - existing flow)
+// ✅ SEND OTP (PHONE)
 export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { mobile, phone } = req.body
@@ -47,7 +47,8 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-    setOtp(cleanMobile, otp)
+    // 🔥 FIXED (3 args)
+    setOtp(cleanMobile, otp, "mobile")
 
     console.log("🔥 OTP:", otp, "Mobile:", cleanMobile)
 
@@ -63,7 +64,7 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 }
 
-// 🔥 NEW: SEND OTP FOR ADMIN (EMAIL)
+// 🔥 ADMIN OTP (EMAIL)
 export const sendAdminOtp = async (req: Request, res: Response) => {
   try {
     const { email } = req.body
@@ -77,10 +78,9 @@ export const sendAdminOtp = async (req: Request, res: Response) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-    // reuse same store (simple approach)
-    setOtp(email, otp)
+    // 🔥 FIXED
+    setOtp(email, otp, "email")
 
-    // 🔥 TEMP: console log (later email service lagayenge)
     console.log("🔥 ADMIN OTP:", otp, "Email:", email)
 
     return res.json({
@@ -95,12 +95,11 @@ export const sendAdminOtp = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ LOGIN (UPDATED FOR ADMIN OTP FLOW)
+// ✅ LOGIN
 export const login = async (req: Request, res: Response) => {
   try {
     const result = await loginUser(req.body)
 
-    // 🔥 CASE 1: ADMIN → OTP REQUIRED
     if (result?.requireOTP) {
       return res.status(200).json({
         success: true,
@@ -109,17 +108,12 @@ export const login = async (req: Request, res: Response) => {
       })
     }
 
-    // 🔥 CASE 2: NORMAL LOGIN SUCCESS
     if (!result?.user || !result?.token) {
-      console.error("❌ Invalid login result:", result)
-
       return res.status(500).json({
         success: false,
         message: "Invalid login response",
       })
     }
-
-    console.log("LOGIN SUCCESS:", result)
 
     return res.status(200).json({
       success: true,
@@ -127,8 +121,6 @@ export const login = async (req: Request, res: Response) => {
     })
 
   } catch (err: any) {
-    console.error("Login Error:", err)
-
     return res.status(400).json({
       success: false,
       message: err.message || "Login failed",
